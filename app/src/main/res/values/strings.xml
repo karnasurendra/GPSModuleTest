@@ -1,0 +1,27 @@
+<resources>
+    <string name="app_name">Sensors</string>
+    <string name="linear_acceleration">Linear Acceleration</string>
+    <string name="x_axis">X</string>
+    <string name="y_axis">Y</string>
+    <string name="z_axis">Z</string>
+    <string name="rotation_vector_header">Rotation Vector</string>
+    <string name="rotation_matrix_header">Inverted Rotation Matrix along with Acceleration</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="ok">OK</string>
+    <string name="acceleration">Acceleration</string>
+    <string name="gyroscope">Gyroscope</string>
+    <string name="magnetometer">Magnetometer</string>
+    <string name="na">-</string>
+    <string name="frequency_normal">Normal</string>
+    <string name="frequency_game">Game</string>
+    <string name="frequency_ui">UI</string>
+    <string name="frequency_fast">Fast</string>
+    <string name="wake_lock_tag">Tag:Main</string>
+    <string name="la_units">m/s2</string>
+    <string name="gyro_units">rad/s</string>
+    <string name="mag_units">mT</string>
+    <string name="sensors_header">Sensor</string>
+    <string name="frequency">Frequency</string>
+    <string name="units">Units</string>
+</resources>
