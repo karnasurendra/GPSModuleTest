@@ -21,18 +21,23 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.ViewModelProviders
 import com.apprikart.rotationmatrixdemo.R
+import com.apprikart.rotationmatrixdemo.SensorsApp
 import com.apprikart.rotationmatrixdemo.Utils
 import com.apprikart.rotationmatrixdemo.filters.Coordinates
 import com.apprikart.rotationmatrixdemo.filters.GPSAccKalmanFilter
 import com.apprikart.rotationmatrixdemo.models.SensorGpsDataItem
 import com.apprikart.rotationmatrixdemo.models.sensorvaluemodels.*
+import com.apprikart.rotationmatrixdemo.viewmodels.MainViewModel
 import com.google.android.gms.location.*
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.*
+import java.io.File
 import java.util.*
 import java.util.concurrent.PriorityBlockingQueue
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -62,6 +67,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                         2 -> acc_z_val.text = event.values[i].toString()
                     }
                 }
+
+
                 val accNow = android.os.SystemClock.elapsedRealtimeNanos()
                 val accNowMs =
                     Utils.nano2milli(
@@ -80,7 +87,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                     )
 
                 accQueue.add(accModel)
-
 
             }
             Sensor.TYPE_GYROSCOPE -> {
@@ -268,7 +274,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         }
     }
 
-    private lateinit var job: Job
     private var permissions = arrayOf(
         Manifest.permission.WRITE_EXTERNAL_STORAGE,
         Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -304,34 +309,36 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     private var linearAccQueue: Queue<LinearAccModel> = PriorityBlockingQueue()
     private var rotationVectorQueue: Queue<RotationVectorModel> = PriorityBlockingQueue()
     private var linearAccAfterRotationQueue: Queue<LAAfterRotation> = PriorityBlockingQueue()
+    private lateinit var mainViewModel: MainViewModel
+    @Inject
+    lateinit var mainViewModelFactory: MainViewModel.Companion.Factory
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        (application as SensorsApp).getComponent().inject(this)
+
+        // Initializing ViewModel with viewmodel factory
+        mainViewModel =
+            ViewModelProviders.of(this, mainViewModelFactory).get(MainViewModel::class.java)
+
         initPowerLock()
         checkPermissions()
 
-        Log.d("Main::", "Coroutine issue in Before launch Coroutine ${Thread.currentThread()}")
-        checkingCouroutine()
-        Log.d("Main::", "Coroutine issue in After launch Coroutine ${Thread.currentThread()}")
-
-
     }
 
-    private fun checkingCouroutine() = runBlocking {
-        // If we do Global scope launch it will do synchronous flow(It means executing the next line even though there is a delay)
-        job = GlobalScope.launch {
-            postDelayed()
+    private fun initialFolderCreation() {
+        val dir = File(getExternalFilesDir(null), "SensorLogs")
+        if (!dir.exists()) {
+            dir.mkdirs()
+            mainViewModel.createTextFiles(dir, Utils.ACCELERATION_TEXT_FILE)
+            mainViewModel.createTextFiles(dir, Utils.GYROSCOPE_TEXT_FILE)
+            mainViewModel.createTextFiles(dir, Utils.MAGNETOMETER_TEXT_FILE)
+            mainViewModel.createTextFiles(dir, Utils.LINEAR_ACCELERATION_TEXT_FILE)
+            mainViewModel.createTextFiles(dir, Utils.ROTATION_VECTOR_TEXT_FILE)
+            mainViewModel.createTextFiles(dir, Utils.LA_AFTER_ROTATION_TEXT_FILE)
         }
-
-        // If we directly call this method it will suspend the thread itself
-//        postDelayed()
-    }
-
-    suspend fun postDelayed() {
-        delay(2000)
-        Log.d("Main::", "Coroutine issue in post Delayed ${Thread.currentThread()}")
     }
 
     private fun checkPermissions() {
@@ -342,11 +349,13 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                 )
             ) {
                 init()
+                initialFolderCreation()
             } else {
                 ActivityCompat.requestPermissions(this, permissions, permissionReqCode)
             }
         } else {
             init()
+            initialFolderCreation()
         }
     }
 
@@ -391,6 +400,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                                 )
                             ) {
                                 init()
+                                initialFolderCreation()
                             }
                         }
                     } else {

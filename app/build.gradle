@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
 
 android {
     compileSdkVersion 29
@@ -21,7 +22,7 @@ android {
 }
 
 ext {
-    daggerVersion = '2.11'
+    daggerVersion = '2.24'
 }
 
 dependencies {
@@ -41,5 +42,9 @@ dependencies {
     implementation 'android.arch.lifecycle:extensions:1.1.1'
     /*Dagger 2 */
     implementation "com.google.dagger:dagger:$daggerVersion"
-    annotationProcessor "com.google.dagger:dagger-compiler:$daggerVersion"
+    implementation "com.google.dagger:dagger-android:$daggerVersion"
+    implementation "com.google.dagger:dagger-android-support:$daggerVersion"
+    kapt "com.google.dagger:dagger-android-processor:$daggerVersion"
+    kapt "com.google.dagger:dagger-compiler:$daggerVersion"
+    api 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.2.0-rc02'
 }
