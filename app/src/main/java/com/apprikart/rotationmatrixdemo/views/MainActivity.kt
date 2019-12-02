@@ -32,7 +32,6 @@ import com.apprikart.rotationmatrixdemo.models.sensorvaluemodels.*
 import com.apprikart.rotationmatrixdemo.viewmodels.MainViewModel
 import com.google.android.gms.location.*
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.coroutines.*
 import java.io.File
 import java.util.*
 import java.util.concurrent.PriorityBlockingQueue
@@ -67,7 +66,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                         2 -> acc_z_val.text = event.values[i].toString()
                     }
                 }
-
 
                 val accNow = android.os.SystemClock.elapsedRealtimeNanos()
                 val accNowMs =
@@ -435,6 +433,14 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         initiateLocation()
         // Initializing the Sensors
         initializeSensors()
+        //Initialize Timers
+        initTimers()
+        // Starting the background task
+        mainViewModel.initSensorDataLoopTask(mSensorDataQueue)
+    }
+
+    private fun initTimers() {
+
     }
 
     @SuppressLint("WakelockTimeout")
