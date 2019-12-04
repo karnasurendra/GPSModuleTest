@@ -2,7 +2,7 @@ package com.apprikart.rotationmatrixdemo.filters
 
 class Matrix(private var rows: Int, private var cols: Int) {
 
-    private var data: Array<DoubleArray> = Array(rows) { DoubleArray(cols) }
+    var data: Array<DoubleArray> = Array(rows) { DoubleArray(cols) }
 
     // vararg will accept n number of elements as input
     fun setData(vararg args: Double) {
@@ -14,6 +14,7 @@ class Matrix(private var rows: Int, private var cols: Int) {
         }
     }
 
+    // Setting the Identity Matrix
     fun setIdentityDiag() {
         for (r in 0 until rows) {
             for (c in 0 until cols) {
@@ -38,6 +39,32 @@ class Matrix(private var rows: Int, private var cols: Int) {
                 ++c
             }
             ++r
+        }
+    }
+
+    private fun swapRows(r1: Int, r2: Int) {
+        assert(r1 != r2)
+        val tmp = data[r1]
+        data[r1] = data[r2]
+        data[r2] = tmp
+    }
+
+    private fun scaleRow(r: Int, scalar: Double) {
+        assert(r < rows)
+        var c = 0
+        while (c < cols) {
+            data[r][c] *= scalar
+            ++c
+        }
+    }
+
+    private fun shearRow(r1: Int, r2: Int, scalar: Double) {
+        assert(r1 != r2)
+        assert(r1 < rows && r2 < rows)
+        var c = 0
+        while (c < cols) {
+            data[r1][c] += data[r2][c] * scalar
+            ++c
         }
     }
 
@@ -123,6 +150,83 @@ class Matrix(private var rows: Int, private var cols: Int) {
                 for (c in 0 until mSrc.cols) {
                     mDst.data[r][c] = mSrc.data[r][c]
                 }
+            }
+        }
+
+        fun matrixSubtract(
+            ma: Matrix,
+            mb: Matrix,
+            mc: Matrix
+        ) {
+            assert(ma.cols == mb.cols && mb.cols == mc.cols)
+            assert(ma.rows == mb.rows && mb.rows == mc.rows)
+            for (r in 0 until ma.rows) {
+                for (c in 0 until ma.cols) {
+                    mc.data[r][c] = ma.data[r][c] - mb.data[r][c]
+                }
+            }
+        }
+
+        fun matrixDestructiveInvert(
+            mtxIn: Matrix,
+            mtxOut: Matrix
+        ): Boolean {
+            assert(mtxIn.cols == mtxIn.rows)
+            assert(mtxOut.cols == mtxIn.cols)
+            assert(mtxOut.rows == mtxIn.rows)
+            var ri: Int
+            var scalar: Double
+            mtxOut.setIdentity()
+            var r = 0
+            while (r < mtxIn.rows) {
+                if (mtxIn.data[r][r] == 0.0) { //we have to swap rows here to make nonzero diagonal
+                    ri = r
+                    while (ri < mtxIn.rows) {
+                        if (mtxIn.data[ri][ri] != 0.0) break
+                        ++ri
+                    }
+                    if (ri == mtxIn.rows) return false //can't get inverse matrix
+                    mtxIn.swapRows(r, ri)
+                    mtxOut.swapRows(r, ri)
+                } //if mtxin.data[r][r] == 0.0
+                scalar = 1.0 / mtxIn.data.get(r).get(r)
+                mtxIn.scaleRow(r, scalar)
+                mtxOut.scaleRow(r, scalar)
+                ri = 0
+                while (ri < r) {
+                    scalar = -mtxIn.data.get(ri).get(r)
+                    mtxIn.shearRow(ri, r, scalar)
+                    mtxOut.shearRow(ri, r, scalar)
+                    ++ri
+                }
+                ri = r + 1
+                while (ri < mtxIn.rows) {
+                    scalar = -mtxIn.data.get(ri).get(r)
+                    mtxIn.shearRow(ri, r, scalar)
+                    mtxOut.shearRow(ri, r, scalar)
+                    ++ri
+                }
+                ++r
+            }
+            return true
+        }
+
+        fun matrixSubtractFromIdentity(m: Matrix) {
+            var c: Int
+            var r = 0
+            while (r < m.rows) {
+                c = 0
+                while (c < r) {
+                    m.data[r][c] = -m.data[r][c]
+                    ++c
+                }
+                m.data[r][r] = 1.0 - m.data[r][r]
+                c = r + 1
+                while (c < m.cols) {
+                    m.data[r][c] = -m.data[r][c]
+                    ++c
+                }
+                ++r
             }
         }
 

@@ -21,13 +21,13 @@ object Coordinates {
         val a = sin(deltaLat / 2.0).pow(2.0) +
                 cos(Math.toRadians(lat1)) *
                 cos(Math.toRadians(lat2)) *
-                Math.sin(deltaLon / 2.0).pow(2.0)
+                sin(deltaLon / 2.0).pow(2.0)
         val c =
             2.0 * atan2(sqrt(a), sqrt(1.0 - a))
         return EARTH_RADIUS * c
     }
 
-    fun longitudeToMeters(lon: Double): Double {
+    fun  longitudeToMeters(lon: Double): Double {
         val distance = distanceBetween(lon, 0.0, 0.0, 0.0)
         return distance * if (lon < 0.0) -1.0 else 1.0
     }

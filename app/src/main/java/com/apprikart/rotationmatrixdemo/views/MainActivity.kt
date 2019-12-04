@@ -177,7 +177,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
                 // Multiplying the inverted Rotation Matrix values with the linear acceleration sensor values
                 android.opengl.Matrix.multiplyMV(
-                    axesAcceleration,
+                    accelerationVector,
                     0,
                     invertedRotationMatrix,
                     0,
@@ -185,10 +185,10 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                     0
                 )
 
-                // Displaying the data in Text views
-                rotation_matrix_x_val.text = axesAcceleration[0].toString()
-                rotation_matrix_y_val.text = axesAcceleration[1].toString()
-                rotation_matrix_z_val.text = axesAcceleration[2].toString()
+                // acceleration vector in the “absolute” coordinate system
+                rotation_matrix_x_val.text = accelerationVector[0].toString()
+                rotation_matrix_y_val.text = accelerationVector[1].toString()
+                rotation_matrix_z_val.text = accelerationVector[2].toString()
 
                 val laAfterRotNow = android.os.SystemClock.elapsedRealtimeNanos()
                 val laAfterRotNowMs =
@@ -201,15 +201,19 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                     LAAfterRotation(
                         Utils.LINEAR_ACCELERATION_AFTER_ROTATION,
                         laAfterRotNowMs.toDouble(),
-                        axesAcceleration[0].toString(),
-                        axesAcceleration[1].toString(),
-                        axesAcceleration[2].toString()
+                        accelerationVector[0].toString(),
+                        accelerationVector[1].toString(),
+                        accelerationVector[2].toString()
                     )
 
                 linearAccAfterRotationQueue.add(laAfterRotation)
 
                 // It will initialize once the Location details get triggered
-                if (gpsAccKalmanFilter == null) return
+                if (gpsAccKalmanFilter == null ||
+                    (gpsAccKalmanFilter != null && gpsAccKalmanFilter!!.isInitializedFromDI())
+                ) {
+                    return
+                }
 
                 // Creating the SensorDataItem object and Location values not available here so which are the fields are not available made them as Not Initialized
                 val sensorGpsDataItem =
@@ -218,9 +222,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                         SensorGpsDataItem.NOT_INITIALIZED,
                         SensorGpsDataItem.NOT_INITIALIZED,
                         SensorGpsDataItem.NOT_INITIALIZED,
-                        axesAcceleration[north].toDouble(),
-                        axesAcceleration[east].toDouble(),
-                        axesAcceleration[up].toDouble(),
+                        accelerationVector[north].toDouble(),
+                        accelerationVector[east].toDouble(),
+                        accelerationVector[up].toDouble(),
                         SensorGpsDataItem.NOT_INITIALIZED,
                         SensorGpsDataItem.NOT_INITIALIZED,
                         SensorGpsDataItem.NOT_INITIALIZED,
@@ -283,7 +287,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     private val mRotationMatrix = FloatArray(16)
     private val invertedRotationMatrix = FloatArray(16)
     private val linAcceleration = FloatArray(4)
-    private val axesAcceleration = FloatArray(4)
+    private val accelerationVector = FloatArray(4)
     private lateinit var mFusedLocationProviderClient: FusedLocationProviderClient
     private lateinit var locationRequest: LocationRequest
     private lateinit var locationCallback: LocationCallback
@@ -327,7 +331,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     }
 
     private fun initialFolderCreation() {
-        val dir = File(getExternalFilesDir(null), "SensorLogs")
+        val dir = File(getExternalFilesDir(null), Utils.LOG_FOLDER)
         if (!dir.exists()) {
             dir.mkdirs()
             mainViewModel.createTextFiles(dir, Utils.ACCELERATION_TEXT_FILE)
@@ -433,10 +437,13 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         initiateLocation()
         // Initializing the Sensors
         initializeSensors()
-        //Initialize Timers
+        //Initialize Timers for Writing to Text File
         initTimers()
         // Starting the background task
         mainViewModel.initSensorDataLoopTask(mSensorDataQueue)
+        /*GlobalScope.launch {
+            delay(2000)
+        }*/
     }
 
     private fun initTimers() {
@@ -856,7 +863,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     private fun initiateLocation() {
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
         locationRequest = LocationRequest.create()
-        locationRequest.interval = TimeUnit.SECONDS.toMillis(30)
+        locationRequest.interval = TimeUnit.SECONDS.toMillis(10)
         locationRequest.fastestInterval = TimeUnit.SECONDS.toMillis(10)
         locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         locationCallback = object : LocationCallback() {
@@ -868,6 +875,11 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
                     // This is will tell whether the location is Fake location or original location, so if it is Fake location we need to return
                     if (location.isFromMockProvider) return
+
+                    Log.d(
+                        "MainActivity::",
+                        "Checking Location ${location.longitude} ${location.latitude}"
+                    )
 
                     val xLong: Double = location.longitude
                     val yLat: Double = location.latitude
@@ -890,7 +902,11 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
                     updateMagneticDeclination(location, timeStamp)
 
-                    if (gpsAccKalmanFilter == null) {
+                    if (gpsAccKalmanFilter == null || (gpsAccKalmanFilter != null && gpsAccKalmanFilter!!.isInitializedFromDI())) {
+                        Log.d(
+                            "MainViewModel::",
+                            "Checking filter is null in onLocation Changed -- in onResult"
+                        )
                         gpsAccKalmanFilter = GPSAccKalmanFilter(
                             false,
                             Coordinates.longitudeToMeters(xLong),
@@ -901,7 +917,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                             accuracy,
                             timeStamp.toDouble(),
                             Utils.DEFAULT_VEL_FACTOR,
-                            Utils.DEFAULT_POS_FACTOR
+                            Utils.DEFAULT_POS_FACTOR,
+                            false
                         )
                     }
 
@@ -922,7 +939,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                         )
 
                     mSensorDataQueue.add(sensorGpsDataItem)
-
                 }
             }
         }

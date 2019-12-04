@@ -3,19 +3,22 @@ package com.apprikart.rotationmatrixdemo
 import android.content.Context
 import android.content.pm.PackageManager
 import androidx.core.app.ActivityCompat
-import java.io.File
 
 open class Utils {
 
     companion object {
 
-        val ACCELERATION_TEXT_FILE: String = "/Acceleration.txt"
-        val GYROSCOPE_TEXT_FILE: String = "/Gyroscope.txt"
-        val MAGNETOMETER_TEXT_FILE: String = "/Magnetometer.txt"
-        val LINEAR_ACCELERATION_TEXT_FILE: String = "/LinearAcceleraion.txt"
-        val ROTATION_VECTOR_TEXT_FILE: String = "/RotationVector.txt"
-        val LA_AFTER_ROTATION_TEXT_FILE: String = "/LAAfterRotation.txt"
-        const val LOG_FILE = "/SensorsLogData"
+
+        const val LOCATION_FROM_FILTER = "Location Service"
+        const val GEOHASH_DEFAULT_PREC = 6
+        const val GEOHASH_DEFAULT_MIN_POINT_COUNT = 2
+        const val ACCELERATION_TEXT_FILE = "/Acceleration.txt"
+        const val GYROSCOPE_TEXT_FILE = "/Gyroscope.txt"
+        const val MAGNETOMETER_TEXT_FILE = "/Magnetometer.txt"
+        const val LINEAR_ACCELERATION_TEXT_FILE = "/LinearAcceleraion.txt"
+        const val ROTATION_VECTOR_TEXT_FILE = "/RotationVector.txt"
+        const val LA_AFTER_ROTATION_TEXT_FILE = "/LAAfterRotation.txt"
+        const val LOG_FOLDER = "SensorsLogs"
         const val ACCELEROMETER_DEFAULT_DEVIATION = 0.1
         const val DEFAULT_VEL_FACTOR = 1.0
         const val DEFAULT_POS_FACTOR = 1.0
