@@ -32,6 +32,7 @@ import com.apprikart.rotationmatrixdemo.models.sensorvaluemodels.*
 import com.apprikart.rotationmatrixdemo.viewmodels.MainViewModel
 import com.google.android.gms.location.*
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.coroutines.*
 import java.io.File
 import java.util.*
 import java.util.concurrent.PriorityBlockingQueue
@@ -209,9 +210,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                 linearAccAfterRotationQueue.add(laAfterRotation)
 
                 // It will initialize once the Location details get triggered
-                if (gpsAccKalmanFilter == null ||
-                    (gpsAccKalmanFilter != null && gpsAccKalmanFilter!!.isInitializedFromDI())
-                ) {
+                if (mainViewModel.gpsAccKalmanFilter.isInitializedFromDI()) {
                     return
                 }
 
@@ -295,7 +294,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     // Ref link : https://www.youtube.com/watch?v=uN5w24F4hGk
     // Magnetic declination can be calculated using Location latitude, longitude and Altitude
     private var mMagneticDeclination: Double = 0.0
-    private var gpsAccKalmanFilter: GPSAccKalmanFilter? = null
+
     // SensorDataItem will be added to this Queue
     private val mSensorDataQueue: Queue<SensorGpsDataItem> =
         PriorityBlockingQueue()
@@ -314,6 +313,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     private lateinit var mainViewModel: MainViewModel
     @Inject
     lateinit var mainViewModelFactory: MainViewModel.Companion.Factory
+    // Bug it is not taking from DI,it is individual to this class only
+//    private var gpsAccKalmanFilter: GPSAccKalmanFilter? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -441,9 +442,19 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         initTimers()
         // Starting the background task
         mainViewModel.initSensorDataLoopTask(mSensorDataQueue)
-        /*GlobalScope.launch {
-            delay(2000)
-        }*/
+        GlobalScope.launch {
+            delay(5000)
+            CoroutineScope(Dispatchers.Main).launch {
+                distance_values_tv.text =
+                    String.format(
+                        "Distance (GEO) : %fm \n Distance ( GEO ) HP : %fm \n Distance as is : %fm \n Distance as is HP : %fm",
+                        mainViewModel.geohashRTFilter.getDistanceGeoFiltered(),
+                        mainViewModel.geohashRTFilter.getDistanceGeoFilteredHP(),
+                        mainViewModel.geohashRTFilter.getDistanceAsIs(),
+                        mainViewModel.geohashRTFilter.getDistanceAsIsHP()
+                    )
+            }
+        }
     }
 
     private fun initTimers() {
@@ -875,12 +886,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
                     // This is will tell whether the location is Fake location or original location, so if it is Fake location we need to return
                     if (location.isFromMockProvider) return
-
-                    Log.d(
-                        "MainActivity::",
-                        "Checking Location ${location.longitude} ${location.latitude}"
-                    )
-
                     val xLong: Double = location.longitude
                     val yLat: Double = location.latitude
                     val speed: Double = location.speed.toDouble()
@@ -902,12 +907,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
                     updateMagneticDeclination(location, timeStamp)
 
-                    if (gpsAccKalmanFilter == null || (gpsAccKalmanFilter != null && gpsAccKalmanFilter!!.isInitializedFromDI())) {
-                        Log.d(
-                            "MainViewModel::",
-                            "Checking filter is null in onLocation Changed -- in onResult"
-                        )
-                        gpsAccKalmanFilter = GPSAccKalmanFilter(
+                    if (mainViewModel.gpsAccKalmanFilter.isInitializedFromDI()) {
+                        mainViewModel.gpsAccKalmanFilter = GPSAccKalmanFilter(
                             false,
                             Coordinates.longitudeToMeters(xLong),
                             Coordinates.latitudeToMeters(yLat),
@@ -965,6 +966,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         // Removing the Location updates once the activity is destroyed
         mFusedLocationProviderClient.removeLocationUpdates(locationCallback)
         unRegisterSensors()
+        // Stopping the filter
+        mainViewModel.geohashRTFilter.stop()
         if (wakeLock.isHeld)
             wakeLock.release()
     }

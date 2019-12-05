@@ -22,13 +22,13 @@ object GeoHash {
 //  return _pdep_u64(x, 0x5555555555555555) | _pdep_u64(y, 0xaaaaaaaaaaaaaaaa);
     }
 
-    fun encode_u64(lat: Double, lon: Double, prec: Int): Long {
-        var lat = lat
-        var lon = lon
-        lat = lat / 180.0 + 1.5
-        lon = lon / 360.0 + 1.5
-        var ilat = java.lang.Double.doubleToRawLongBits(lat)
-        var ilon = java.lang.Double.doubleToRawLongBits(lon)
+    fun encodeU64(lat: Double, lon: Double, prec: Int): Long {
+        var mLat = lat
+        var mLong = lon
+        mLat = mLat / 180.0 + 1.5
+        mLong = mLong / 360.0 + 1.5
+        var ilat = java.lang.Double.doubleToRawLongBits(mLat)
+        var ilon = java.lang.Double.doubleToRawLongBits(mLong)
         ilat = ilat shr 20
         ilon = ilon shr 20
         ilat = ilat and 0x00000000ffffffffL

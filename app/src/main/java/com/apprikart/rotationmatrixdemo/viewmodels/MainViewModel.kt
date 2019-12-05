@@ -69,9 +69,26 @@ class MainViewModel(
                 } else {
                     handleUpdate(sdi)
                     val location = locationAfterUpdateStep(sdi)
+                    onLocationChangedImp(location)
                 }
             }
         }
+    }
+
+    private fun onLocationChangedImp(location: Location) {
+
+        // Location provider will change in GeoHashRTFilter class
+        if (location.latitude == 0.0 ||
+            location.longitude == 0.0 ||
+            location.provider != Utils.LOCATION_FROM_FILTER
+        ) {
+            return
+        }
+
+
+
+
+
     }
 
     private fun locationAfterUpdateStep(sdi: SensorGpsDataItem): Location {
@@ -139,7 +156,6 @@ class MainViewModel(
                     throw IllegalArgumentException("ViewModel not found")
                 }
             }
-
         }
     }
 

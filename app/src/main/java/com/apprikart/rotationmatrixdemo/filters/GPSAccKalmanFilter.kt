@@ -27,7 +27,6 @@ class GPSAccKalmanFilter(
 
     // If we want to initialize any code on object creation code will sit here
     init {
-
         // It will initialize twice from Dependency injection and From onLocationResult
         val mesDim = if (useGpsSpeed) 4 else 2
         mUseGpsSpeed = useGpsSpeed

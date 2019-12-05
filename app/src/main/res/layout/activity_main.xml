@@ -766,6 +766,15 @@
                     android:textSize="15sp" />
 
             </LinearLayout>
+
+            <TextView
+                android:id="@+id/distance_values_tv"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:layout_below="@id/rotation_matrix_values_lay"/>
+
+
         </RelativeLayout>
     </ScrollView>
 </RelativeLayout>

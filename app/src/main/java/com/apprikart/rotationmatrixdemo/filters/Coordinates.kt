@@ -8,9 +8,10 @@ import kotlin.math.*
  */
 object Coordinates {
 
-    private const val EARTH_RADIUS = 6371.0 * 1000.0 // meters
 
-    private fun distanceBetween(
+    const val EARTH_RADIUS = 6371.0 * 1000.0 // meters
+
+    fun distanceBetween(
         lon1: Double,
         lat1: Double,
         lon2: Double,
@@ -27,7 +28,7 @@ object Coordinates {
         return EARTH_RADIUS * c
     }
 
-    fun  longitudeToMeters(lon: Double): Double {
+    fun longitudeToMeters(lon: Double): Double {
         val distance = distanceBetween(lon, 0.0, 0.0, 0.0)
         return distance * if (lon < 0.0) -1.0 else 1.0
     }
