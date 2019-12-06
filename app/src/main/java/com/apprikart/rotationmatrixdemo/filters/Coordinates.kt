@@ -9,7 +9,7 @@ import kotlin.math.*
 object Coordinates {
 
 
-    const val EARTH_RADIUS = 6371.0 * 1000.0 // meters
+    private const val EARTH_RADIUS = 6371.0 * 1000.0 // meters
 
     fun distanceBetween(
         lon1: Double,

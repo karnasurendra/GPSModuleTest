@@ -114,6 +114,7 @@ class MainViewModel(
 
         val loc = Location(Utils.LOCATION_FROM_FILTER)
 
+        // In Filter values to be in Meters, So by using the metersToGeoPoint getting the geo points i.e latitude and longitude
         val geoPoint = Coordinates.metersToGeoPoint(
             gpsAccKalmanFilter.getCurrentX(),
             gpsAccKalmanFilter.getCurrentY()

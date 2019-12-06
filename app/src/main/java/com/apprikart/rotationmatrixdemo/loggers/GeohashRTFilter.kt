@@ -45,7 +45,7 @@ class GeohashRTFilter(private val geohashPrecision: Int, private val geohashminP
 
         val pi = GeoPoint(loc.latitude, loc.longitude)
 
-        // First time we are updating the the current Geo point and last Geo point with the first location values
+        // First time we are updating the current Geo point and last Geo point with the first location values
         if (isFirstCoordinate) {
             geoHashBuffers[ppCompGeoHash] =
                 GeoHash.encodeU64(pi.latitude, pi.longitude, geohashPrecision)
@@ -80,9 +80,9 @@ class GeohashRTFilter(private val geohashPrecision: Int, private val geohashminP
 
         geoHashBuffers[ppReadGeoHash] =
             GeoHash.encodeU64(pi.latitude, pi.longitude, geohashPrecision)
-        // Storing the last location details in geoHashBuffers 0th position and current location in 1st position
+
         if (geoHashBuffers[ppCompGeoHash] != geoHashBuffers[ppReadGeoHash]) {
-            // Doubt default value for geohashminPointCount is 2
+
             if (pointsInCurrentGeoHashCount >= geohashminPointCount) {
                 currentGeoPoint.latitude /= pointsInCurrentGeoHashCount
                 currentGeoPoint.longitude /= pointsInCurrentGeoHashCount
