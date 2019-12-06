@@ -48,6 +48,24 @@ class KalmanFilter(
         Matrix.matrixMultiplyByTranspose(auxSDxSD, f, pkKm1)
         Matrix.matrixAdd(pkKm1, q, pkKm1)
 
+        Log.d(
+            "KalmanFilter::",
+            "Checking Sensor Values predicted State ${System.currentTimeMillis()} \n " +
+                    "${xkKm1.data[0][0]} \n" +
+                    "${xkKm1.data[1][0]} \n" +
+                    "${xkKm1.data[2][0]} \n" +
+                    "${xkKm1.data[3][0]}"
+        )
+
+        Log.d(
+            "KalmanFilter::",
+            "Checking Sensor Values predicted Covariance ${System.currentTimeMillis()} \n " +
+                    "${pkKm1.data[0][0]} ${pkKm1.data[0][1]} ${pkKm1.data[0][2]} ${pkKm1.data[0][3]} \n" +
+                    "${pkKm1.data[1][0]} ${pkKm1.data[1][1]} ${pkKm1.data[1][2]} ${pkKm1.data[1][3]} \n" +
+                    "${pkKm1.data[2][0]} ${pkKm1.data[2][1]} ${pkKm1.data[2][2]} ${pkKm1.data[2][3]} \n" +
+                    "${pkKm1.data[3][0]} ${pkKm1.data[3][1]} ${pkKm1.data[3][2]} ${pkKm1.data[3][3]} "
+        )
+
     }
 
     fun update() {
@@ -73,6 +91,23 @@ class KalmanFilter(
         Matrix.matrixMultiply(k, h, auxSDxSD)
         Matrix.matrixSubtractFromIdentity(auxSDxSD)
         Matrix.matrixMultiply(auxSDxSD, pkKm1, pkK)
+
+        Log.d(
+            "KalmanFilter::",
+            "Checking Sensor Values Updated State ${System.currentTimeMillis()}\n ${xkK.data[0][0]} \n" +
+                    "${xkK.data[1][0]} \n" +
+                    "${xkK.data[2][0]} \n" +
+                    "${xkK.data[3][0]} \n"
+        )
+
+        Log.d(
+            "KalmanFilter::",
+            "Checking Sensor Values Updated Covariance ${System.currentTimeMillis()}\n" +
+                    "${pkK.data[0][0]} ${pkK.data[0][1]} ${pkK.data[0][2]} ${pkK.data[0][3]} \n" +
+                    "${pkK.data[1][0]} ${pkK.data[1][1]} ${pkK.data[1][2]} ${pkK.data[1][3]} \n" +
+                    "${pkK.data[2][0]} ${pkK.data[2][1]} ${pkK.data[2][2]} ${pkK.data[2][3]} \n" +
+                    "${pkK.data[3][0]} ${pkK.data[3][1]} ${pkK.data[3][2]} ${pkK.data[3][3]}"
+        )
 
         //we don't use this :
         //Yk|k = Zk - Hk*Xk|k

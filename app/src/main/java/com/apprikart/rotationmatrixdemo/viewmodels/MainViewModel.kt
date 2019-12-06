@@ -2,10 +2,8 @@ package com.apprikart.rotationmatrixdemo.viewmodels
 
 import android.app.Application
 import android.location.Location
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
+import android.util.Log
+import androidx.lifecycle.*
 import com.apprikart.rotationmatrixdemo.Utils
 import com.apprikart.rotationmatrixdemo.filters.Coordinates
 import com.apprikart.rotationmatrixdemo.filters.GPSAccKalmanFilter
@@ -28,6 +26,12 @@ class MainViewModel(
     var gpsAccKalmanFilter: GPSAccKalmanFilter,
     var geohashRTFilter: GeohashRTFilter
 ) : AndroidViewModel(application) {
+
+    var geoValues = MutableLiveData<String>()
+
+    /*fun getValues(): MutableLiveData<String> {
+        return geoValues
+    }*/
 
     fun createTextFiles(dir: File, textFileName: String) {
         val file = File(dir.absolutePath, textFileName)
@@ -85,8 +89,23 @@ class MainViewModel(
             return
         }
 
+        Log.d(
+            "KalmanFilter::",
+            "Checking Sensor Values onLocationChanged Imp ${System.nanoTime()} \n" +
+                    "Location Tag ${location.provider} \n" +
+                    "${geohashRTFilter.getDistanceGeoFiltered()} \n" +
+                    "${geohashRTFilter.getDistanceGeoFilteredHP()} \n" +
+                    "${geohashRTFilter.getDistanceAsIs()} \n" +
+                    "${geohashRTFilter.getDistanceAsIsHP()}"
+        )
 
 
+        geoValues.postValue(
+            "Distance Geo : ${geohashRTFilter.getDistanceGeoFiltered()} \n" +
+                    "Distance Geo HP : ${geohashRTFilter.getDistanceGeoFilteredHP()} \n" +
+                    "DistanceAsIs : ${geohashRTFilter.getDistanceAsIs()} \n" +
+                    "DistanceAsIs HP : ${geohashRTFilter.getDistanceAsIsHP()}"
+        )
 
 
     }

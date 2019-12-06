@@ -21,10 +21,12 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProviders
 import com.apprikart.rotationmatrixdemo.R
 import com.apprikart.rotationmatrixdemo.SensorsApp
 import com.apprikart.rotationmatrixdemo.Utils
+import com.apprikart.rotationmatrixdemo.databinding.ActivityMainBinding
 import com.apprikart.rotationmatrixdemo.filters.Coordinates
 import com.apprikart.rotationmatrixdemo.filters.GPSAccKalmanFilter
 import com.apprikart.rotationmatrixdemo.models.SensorGpsDataItem
@@ -315,16 +317,27 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     lateinit var mainViewModelFactory: MainViewModel.Companion.Factory
     // Bug it is not taking from DI,it is individual to this class only
 //    private var gpsAccKalmanFilter: GPSAccKalmanFilter? = null
+    private lateinit var mBinding: ActivityMainBinding
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+//        setContentView(R.layout.activity_main)
+        mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
 
         (application as SensorsApp).getComponent().inject(this)
 
         // Initializing ViewModel with viewmodel factory
         mainViewModel =
             ViewModelProviders.of(this, mainViewModelFactory).get(MainViewModel::class.java)
+
+        mBinding.lifecycleOwner = this
+        mBinding.mainViewModel = mainViewModel
+
+        /*mainViewModel.geoValues.observe(this, androidx.lifecycle.Observer {
+            mBinding.distanceValuesTv.text = it
+        })*/
+
 
         initPowerLock()
         checkPermissions()
@@ -442,7 +455,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         initTimers()
         // Starting the background task
         mainViewModel.initSensorDataLoopTask(mSensorDataQueue)
-        GlobalScope.launch {
+        /*GlobalScope.launch {
             delay(5000)
             CoroutineScope(Dispatchers.Main).launch {
                 distance_values_tv.text =
@@ -454,7 +467,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                         mainViewModel.geohashRTFilter.getDistanceAsIsHP()
                     )
             }
-        }
+        }*/
     }
 
     private fun initTimers() {
