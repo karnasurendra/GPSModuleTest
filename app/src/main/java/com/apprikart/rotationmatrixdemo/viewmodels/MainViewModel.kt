@@ -28,6 +28,7 @@ class MainViewModel(
 ) : AndroidViewModel(application) {
 
     var geoValues = MutableLiveData<String>()
+    var isTaskLooping = false
 
     /*fun getValues(): MutableLiveData<String> {
         return geoValues
@@ -52,17 +53,16 @@ class MainViewModel(
     fun initSensorDataLoopTask(mSensorDataQueue: Queue<SensorGpsDataItem>) {
         viewModelScope.launch(Dispatchers.IO) {
             // Minimum time interval between each estimate position calculation in Millis
-            delay(5000)
+//            delay(5000)
+            // This is to Check whether the parallel thread is running or not in Activity
+            isTaskLooping = true
 
             var sdi: SensorGpsDataItem
             var lastTimeStamp = 0.0
 
-            while (mSensorDataQueue.poll().also {
-                    sdi = it
-                } != null) {
-                if (mSensorDataQueue.size < 5) {
-                    delay(1000)
-                }
+            while (!mSensorDataQueue.isEmpty()) {
+
+                sdi = mSensorDataQueue.poll()!!
                 if (sdi.timestamp < lastTimeStamp) {
                     continue
                 }
@@ -76,6 +76,9 @@ class MainViewModel(
                     onLocationChangedImp(location)
                 }
             }
+
+            isTaskLooping = false
+
         }
     }
 

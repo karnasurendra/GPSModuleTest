@@ -10,24 +10,12 @@ import javax.inject.Singleton
 @Module
 class ViewModelModule {
 
-    // Whatever we want to provide as singleton we can write here like Retrofit, WebService.. with provides Annotation
+    // Whatever we want to provide singleton class, we can write here like Retrofit, WebService.. with provides Annotation
 
     @Provides
     @Singleton
     fun getGpsAccKalmanFilter(): GPSAccKalmanFilter {
-        return GPSAccKalmanFilter(
-            false,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            Utils.ACCELEROMETER_DEFAULT_DEVIATION,
-            0.0,
-            0.0,
-            Utils.DEFAULT_VEL_FACTOR,
-            Utils.DEFAULT_POS_FACTOR,
-            true
-        )
+        return GPSAccKalmanFilter(true)
     }
 
     @Provides

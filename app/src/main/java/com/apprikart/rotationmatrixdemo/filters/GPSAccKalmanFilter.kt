@@ -1,33 +1,35 @@
 package com.apprikart.rotationmatrixdemo.filters
 
 // This is Primary Constructor in Kotlin
-class GPSAccKalmanFilter(
-    useGpsSpeed: Boolean,
-    x: Double, // Long to Meters using Coordinates class
-    y: Double, // Lat to Meters using Coordinates class
-    xVel: Double, // Velocity using speed and cos of Course ( Bearing value from GPS )
-    yVel: Double, // Velocity using speed and sin of Course ( Bearing value from GPS )
-    accDev: Double, // Accelerometer default deviation always 0.1
-    posDev: Double, // Accuracy from GPS
-    timeStampMs: Double, // Current timestamp
-    velFactor: Double, // Default velocity factor 1.0
-    posVector: Double, // Default position factor 1.0
-    private var isFromDependency: Boolean
-) {
+class GPSAccKalmanFilter(private var isFromDependency: Boolean) {
 
     private var mTimeStampMsPredict: Double = 0.0
     private var mTimeStampMsUpdate: Double = 0.0
     private var mUseGpsSpeed = false
-    private var kalmanFilter: KalmanFilter
+    private lateinit var kalmanFilter: KalmanFilter
     private var accSigma: Double = 0.0
     private var predictCount = 0
     private var mVelFactor: Double = 0.0
     private var mPosFactor: Double = 0.0
 
 
-    // If we want to initialize any code on object creation code will sit here
-    init {
-        // It will initialize twice from Dependency injection and From onLocationResult
+    // As this class will get initialized from DI, So use this method as initialization part by calling it when onLocation updated get triggered
+    fun manualInit(
+        useGpsSpeed: Boolean,
+        x: Double, // Long to Meters using Coordinates class
+        y: Double, // Lat to Meters using Coordinates class
+        xVel: Double, // Velocity using speed and cos of Course ( Bearing value from GPS )
+        yVel: Double, // Velocity using speed and sin of Course ( Bearing value from GPS )
+        accDev: Double, // Accelerometer default deviation always 0.1
+        posDev: Double, // Accuracy from GPS
+        timeStampMs: Double, // Current timestamp
+        velFactor: Double, // Default velocity factor 1.0
+        posVector: Double, // Default position factor 1.0
+        isFromDependency: Boolean
+    ) {
+
+        this.isFromDependency = isFromDependency
+
         val mesDim = if (useGpsSpeed) 4 else 2
         mUseGpsSpeed = useGpsSpeed
 
@@ -45,6 +47,7 @@ class GPSAccKalmanFilter(
         kalmanFilter.pkK.scale(posDev) // posDev is accuracy from GPS
         mVelFactor = velFactor
         mPosFactor = posVector
+
     }
 
     fun isInitializedFromDI(): Boolean {

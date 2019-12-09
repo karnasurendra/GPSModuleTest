@@ -34,7 +34,6 @@ import com.apprikart.rotationmatrixdemo.models.sensorvaluemodels.*
 import com.apprikart.rotationmatrixdemo.viewmodels.MainViewModel
 import com.google.android.gms.location.*
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.coroutines.*
 import java.io.File
 import java.util.*
 import java.util.concurrent.PriorityBlockingQueue
@@ -178,17 +177,17 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                 // Converting the event values to an Array
                 System.arraycopy(event.values, 0, linAcceleration, 0, event.values.size)
 
-
-
                 Log.d(
-                    "MainActivity::", "Sensor Values -- Linear Acceleration \n ${linAcceleration[0]} \n" +
+                    "MainActivity::",
+                    "Sensor Values -- Linear Acceleration \n ${linAcceleration[0]} \n" +
                             "${linAcceleration[1]} \n " +
                             "${linAcceleration[2]} \n" +
                             "${linAcceleration[3]}"
                 )
 
                 Log.d(
-                    "MainActivity::", "Sensor Values -- Inverse Rotation Matrix in Linear Acceleration \n " +
+                    "MainActivity::",
+                    "Sensor Values -- Inverse Rotation Matrix in Linear Acceleration \n " +
                             "${invertedRotationMatrix[0]} ${invertedRotationMatrix[1]} ${invertedRotationMatrix[2]} ${invertedRotationMatrix[3]} \n" +
                             "${invertedRotationMatrix[4]} ${invertedRotationMatrix[5]} ${invertedRotationMatrix[6]} ${invertedRotationMatrix[7]} \n" +
                             "${invertedRotationMatrix[8]} ${invertedRotationMatrix[6]} ${invertedRotationMatrix[10]} ${invertedRotationMatrix[11]} \n" +
@@ -206,7 +205,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                 )
 
                 Log.d(
-                    "MainActivity::", "Sensor Values -- Acceleration absolute coordinate system \n ${accelerationVector[0]} \n" +
+                    "MainActivity::",
+                    "Sensor Values -- Acceleration absolute coordinate system \n ${accelerationVector[0]} \n" +
                             "${accelerationVector[1]} \n " +
                             "${accelerationVector[2]} \n" +
                             "${accelerationVector[3]}"
@@ -259,6 +259,11 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
                 // Adding the sensor data item object to Queue
                 mSensorDataQueue.add(sensorGpsDataItem)
+
+                // We are checking whether the parallel thread is running or not, if it is not running we are starting again
+                if (!mainViewModel.isTaskLooping) {
+                    mainViewModel.initSensorDataLoopTask(mSensorDataQueue)
+                }
 
             }
 
@@ -319,7 +324,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                             "${invertedRotationMatrix[8]} ${invertedRotationMatrix[6]} ${invertedRotationMatrix[10]} ${invertedRotationMatrix[11]}" +
                             "${invertedRotationMatrix[12]} ${invertedRotationMatrix[13]} ${invertedRotationMatrix[14]} ${invertedRotationMatrix[15]}"
                 )
-                
+
             }
         }
     }
@@ -378,6 +383,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         mainViewModel =
             ViewModelProviders.of(this, mainViewModelFactory).get(MainViewModel::class.java)
 
+        // Mandatory to link between the ViewModel and XML
         mBinding.lifecycleOwner = this
         mBinding.mainViewModel = mainViewModel
 
@@ -967,8 +973,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
                     updateMagneticDeclination(location, timeStamp)
 
+                    // Only once it has to initialize, It will initialize from DI it will not be null
                     if (mainViewModel.gpsAccKalmanFilter.isInitializedFromDI()) {
-                        mainViewModel.gpsAccKalmanFilter = GPSAccKalmanFilter(
+                        mainViewModel.gpsAccKalmanFilter.manualInit(
                             false,
                             Coordinates.longitudeToMeters(xLong),
                             Coordinates.latitudeToMeters(yLat),
@@ -981,6 +988,19 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                             Utils.DEFAULT_POS_FACTOR,
                             false
                         )
+                        /*mainViewModel.gpsAccKalmanFilter = GPSAccKalmanFilter(
+                            false,
+                            Coordinates.longitudeToMeters(xLong),
+                            Coordinates.latitudeToMeters(yLat),
+                            xVel,
+                            yVel,
+                            Utils.ACCELEROMETER_DEFAULT_DEVIATION,
+                            accuracy,
+                            timeStamp.toDouble(),
+                            Utils.DEFAULT_VEL_FACTOR,
+                            Utils.DEFAULT_POS_FACTOR,
+                            false
+                        )*/
                     }
 
                     val sensorGpsDataItem =
@@ -1000,6 +1020,10 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                         )
 
                     mSensorDataQueue.add(sensorGpsDataItem)
+
+                    if (!mainViewModel.isTaskLooping) {
+                        mainViewModel.initSensorDataLoopTask(mSensorDataQueue)
+                    }
                 }
             }
         }
