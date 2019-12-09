@@ -28,10 +28,10 @@ import com.apprikart.rotationmatrixdemo.SensorsApp
 import com.apprikart.rotationmatrixdemo.Utils
 import com.apprikart.rotationmatrixdemo.databinding.ActivityMainBinding
 import com.apprikart.rotationmatrixdemo.filters.Coordinates
-import com.apprikart.rotationmatrixdemo.filters.GPSAccKalmanFilter
 import com.apprikart.rotationmatrixdemo.models.SensorGpsDataItem
 import com.apprikart.rotationmatrixdemo.models.sensorvaluemodels.*
 import com.apprikart.rotationmatrixdemo.viewmodels.MainViewModel
+import com.elvishew.xlog.XLog
 import com.google.android.gms.location.*
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
@@ -63,9 +63,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             Sensor.TYPE_ACCELEROMETER -> {
                 for (i in event.values.indices) {
                     when (i) {
-                        0 -> acc_x_val.text = event.values[i].toString()
-                        1 -> acc_y_val.text = event.values[i].toString()
-                        2 -> acc_z_val.text = event.values[i].toString()
+                        0 -> mBinding.accXVal.text = event.values[i].toString()
+                        1 -> mBinding.accYVal.text = event.values[i].toString()
+                        2 -> mBinding.accZVal.text = event.values[i].toString()
                     }
                 }
 
@@ -88,13 +88,15 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
                 accQueue.add(accModel)
 
+//                XLog.d("${Utils.ACCELERATION} - [ X : ${event.values[0]}, Y : ${event.values[1]}, Z : ${event.values[2]} ]")
+
             }
             Sensor.TYPE_GYROSCOPE -> {
                 for (i in event.values.indices) {
                     when (i) {
-                        0 -> gyro_x_val.text = event.values[i].toString()
-                        1 -> gyro_y_val.text = event.values[i].toString()
-                        2 -> gyro_z_val.text = event.values[i].toString()
+                        0 -> mBinding.gyroXVal.text = event.values[i].toString()
+                        1 -> mBinding.gyroYVal.text = event.values[i].toString()
+                        2 -> mBinding.gyroZVal.text = event.values[i].toString()
                     }
                 }
 
@@ -121,9 +123,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             Sensor.TYPE_MAGNETIC_FIELD -> {
                 for (i in event.values.indices) {
                     when (i) {
-                        0 -> mag_x_val.text = event.values[i].toString()
-                        1 -> mag_y_val.text = event.values[i].toString()
-                        2 -> mag_z_val.text = event.values[i].toString()
+                        0 -> mBinding.magXVal.text = event.values[i].toString()
+                        1 -> mBinding.magYVal.text = event.values[i].toString()
+                        2 -> mBinding.magZVal.text = event.values[i].toString()
                     }
                 }
 
@@ -149,9 +151,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             Sensor.TYPE_LINEAR_ACCELERATION -> {
                 for (i in event.values.indices) {
                     when (i) {
-                        0 -> linear_x_val.text = event.values[i].toString()
-                        1 -> linear_y_val.text = event.values[i].toString()
-                        2 -> linear_z_val.text = event.values[i].toString()
+                        0 -> mBinding.linearXVal.text = event.values[i].toString()
+                        1 -> mBinding.linearYVal.text = event.values[i].toString()
+                        2 -> mBinding.linearZVal.text = event.values[i].toString()
                     }
                 }
 
@@ -177,22 +179,13 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                 // Converting the event values to an Array
                 System.arraycopy(event.values, 0, linAcceleration, 0, event.values.size)
 
-                Log.d(
-                    "MainActivity::",
-                    "Sensor Values -- Linear Acceleration \n ${linAcceleration[0]} \n" +
-                            "${linAcceleration[1]} \n " +
-                            "${linAcceleration[2]} \n" +
-                            "${linAcceleration[3]}"
-                )
+                XLog.d("${Utils.LINEAR_ACCELERATION} - \n [ ${linAcceleration[0]} \n ${linAcceleration[1]} \n ${linAcceleration[2]} \n ${linAcceleration[3]} ]")
 
-                Log.d(
-                    "MainActivity::",
-                    "Sensor Values -- Inverse Rotation Matrix in Linear Acceleration \n " +
-                            "${invertedRotationMatrix[0]} ${invertedRotationMatrix[1]} ${invertedRotationMatrix[2]} ${invertedRotationMatrix[3]} \n" +
-                            "${invertedRotationMatrix[4]} ${invertedRotationMatrix[5]} ${invertedRotationMatrix[6]} ${invertedRotationMatrix[7]} \n" +
-                            "${invertedRotationMatrix[8]} ${invertedRotationMatrix[6]} ${invertedRotationMatrix[10]} ${invertedRotationMatrix[11]} \n" +
-                            "${invertedRotationMatrix[12]} ${invertedRotationMatrix[13]} ${invertedRotationMatrix[14]} ${invertedRotationMatrix[15]}"
-                )
+                XLog.d("${Utils.INVERSE_ROTATION_MATRIX} From Linear Acceleration - \n [" +
+                        "${invertedRotationMatrix[0]} ${invertedRotationMatrix[1]} ${invertedRotationMatrix[2]} ${invertedRotationMatrix[3]} \n" +
+                        "${invertedRotationMatrix[4]} ${invertedRotationMatrix[5]} ${invertedRotationMatrix[6]} ${invertedRotationMatrix[7]} \n" +
+                        "${invertedRotationMatrix[8]} ${invertedRotationMatrix[9]} ${invertedRotationMatrix[10]} ${invertedRotationMatrix[11]} \n" +
+                        "${invertedRotationMatrix[12]} ${invertedRotationMatrix[13]} ${invertedRotationMatrix[14]} ${invertedRotationMatrix[15]}  ]")
 
                 // Multiplying the inverted Rotation Matrix values with the linear acceleration sensor values
                 android.opengl.Matrix.multiplyMV(
@@ -204,13 +197,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                     0
                 )
 
-                Log.d(
-                    "MainActivity::",
-                    "Sensor Values -- Acceleration absolute coordinate system \n ${accelerationVector[0]} \n" +
-                            "${accelerationVector[1]} \n " +
-                            "${accelerationVector[2]} \n" +
-                            "${accelerationVector[3]}"
-                )
+                XLog.d("${Utils.ACCELERATION_IN_ABSOLUTE_COORDINATE_SYSTEM} - \n [ ${accelerationVector[0]} \n ${accelerationVector[1]} \n ${accelerationVector[2]} \n ${accelerationVector[3]} ]")
 
                 // acceleration vector in the “absolute” coordinate system
                 rotation_matrix_x_val.text = accelerationVector[0].toString()
@@ -271,9 +258,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
                 for (i in event.values.indices) {
                     when (i) {
-                        0 -> rotation_vector_x_val.text = event.values[i].toString()
-                        1 -> rotation_vector_y_val.text = event.values[i].toString()
-                        2 -> rotation_vector_z_val.text = event.values[i].toString()
+                        0 -> mBinding.rotationVectorXVal.text = event.values[i].toString()
+                        1 -> mBinding.rotationVectorYVal.text = event.values[i].toString()
+                        2 -> mBinding.rotationVectorZVal.text = event.values[i].toString()
                     }
                 }
 
@@ -295,35 +282,30 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
                 rotationVectorQueue.add(rotationVectorModel)
 
-                Log.d(
-                    "MainActivity::", "Sensor Values -- Rotation Vector \n ${event.values[0]} \n" +
-                            "${event.values[1]} \n " +
-                            "${event.values[2]} \n" +
-                            "${event.values[3]}"
-                )
 
                 // Getting Rotation Matrix values from Rotation Vector Component, which is 16 size array in Matrix form 4 x 4 matrix
                 // one dimensions for each axis x, y, and z, plus one dimension to represent the “origin” in the coordinate system. These are known as homogenous coordinates
                 SensorManager.getRotationMatrixFromVector(mRotationMatrix, event.values)
 
-                Log.d(
-                    "MainActivity::", "Sensor Values -- Rotation Matrix \n " +
-                            "${mRotationMatrix[0]} ${mRotationMatrix[1]} ${mRotationMatrix[2]} ${mRotationMatrix[3]} \n" +
-                            "${mRotationMatrix[4]} ${mRotationMatrix[5]} ${mRotationMatrix[6]} ${mRotationMatrix[7]} \n" +
-                            "${mRotationMatrix[8]} ${mRotationMatrix[6]} ${mRotationMatrix[10]} ${mRotationMatrix[11]}" +
-                            "${mRotationMatrix[12]} ${mRotationMatrix[13]} ${mRotationMatrix[14]} ${mRotationMatrix[15]}"
-                )
+                XLog.d("${Utils.ROTATION_VECTOR} - \n [" +
+                        "${event.values[0]} \n ${event.values[1]} \n ${event.values[2]} \n ${event.values[3]} \n ]")
+
+
+                XLog.d("${Utils.ROTATION_MATRIX} - \n [" +
+                        "${mRotationMatrix[0]} ${mRotationMatrix[1]} ${mRotationMatrix[2]} ${mRotationMatrix[3]} \n" +
+                        "${mRotationMatrix[4]} ${mRotationMatrix[5]} ${mRotationMatrix[6]} ${mRotationMatrix[7]} \n" +
+                        "${mRotationMatrix[8]} ${mRotationMatrix[9]} ${mRotationMatrix[10]} ${mRotationMatrix[11]} \n" +
+                        "${mRotationMatrix[12]} ${mRotationMatrix[13]} ${mRotationMatrix[14]} ${mRotationMatrix[15]}  ]")
+
 
                 // Inverting the 4 x 4 Rotation Matrix Values and saving to invertedRotationMatrix
                 android.opengl.Matrix.invertM(invertedRotationMatrix, 0, mRotationMatrix, 0)
 
-                Log.d(
-                    "MainActivity::", "Sensor Values -- Inverse Rotation Matrix \n " +
-                            "${invertedRotationMatrix[0]} ${invertedRotationMatrix[1]} ${invertedRotationMatrix[2]} ${invertedRotationMatrix[3]} \n" +
-                            "${invertedRotationMatrix[4]} ${invertedRotationMatrix[5]} ${invertedRotationMatrix[6]} ${invertedRotationMatrix[7]} \n" +
-                            "${invertedRotationMatrix[8]} ${invertedRotationMatrix[6]} ${invertedRotationMatrix[10]} ${invertedRotationMatrix[11]}" +
-                            "${invertedRotationMatrix[12]} ${invertedRotationMatrix[13]} ${invertedRotationMatrix[14]} ${invertedRotationMatrix[15]}"
-                )
+                XLog.d("${Utils.INVERSE_ROTATION_MATRIX} From Rotation Vector - \n [" +
+                        "${invertedRotationMatrix[0]} ${invertedRotationMatrix[1]} ${invertedRotationMatrix[2]} ${invertedRotationMatrix[3]} \n" +
+                        "${invertedRotationMatrix[4]} ${invertedRotationMatrix[5]} ${invertedRotationMatrix[6]} ${invertedRotationMatrix[7]} \n" +
+                        "${invertedRotationMatrix[8]} ${invertedRotationMatrix[9]} ${invertedRotationMatrix[10]} ${invertedRotationMatrix[11]} \n" +
+                        "${invertedRotationMatrix[12]} ${invertedRotationMatrix[13]} ${invertedRotationMatrix[14]} ${invertedRotationMatrix[15]}  ]")
 
             }
         }
@@ -387,13 +369,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         mBinding.lifecycleOwner = this
         mBinding.mainViewModel = mainViewModel
 
-        /*mainViewModel.geoValues.observe(this, androidx.lifecycle.Observer {
-            mBinding.distanceValuesTv.text = it
-        })*/
-
-
         initPowerLock()
         checkPermissions()
+
 
     }
 

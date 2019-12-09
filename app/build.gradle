@@ -51,5 +51,8 @@ dependencies {
     implementation "com.google.dagger:dagger-android-support:$daggerVersion"
     kapt "com.google.dagger:dagger-android-processor:$daggerVersion"
     kapt "com.google.dagger:dagger-compiler:$daggerVersion"
+    // For View model and lifecycle
     api 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.2.0-rc02'
+    // For Logs, Writing to Text File
+    implementation 'com.elvishew:xlog:1.6.1'
 }

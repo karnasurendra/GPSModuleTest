@@ -25,6 +25,9 @@ open class Utils {
         const val MAGNETOMETER = "Magnetometer"
         const val LINEAR_ACCELERATION = "Linear Acceleration"
         const val ROTATION_VECTOR = "Rotation Vector"
+        const val ROTATION_MATRIX= "Rotation Matrix"
+        const val INVERSE_ROTATION_MATRIX = "Inverse Rotation Matrix"
+        const val ACCELERATION_IN_ABSOLUTE_COORDINATE_SYSTEM= "Acceleration vector in absolute coordinate system"
         const val LINEAR_ACCELERATION_AFTER_ROTATION = "Linear acceleration after rotation"
 
         fun nano2milli(nano: Long): Long {
