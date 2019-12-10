@@ -1,9 +1,11 @@
 package com.apprikart.rotationmatrixdemo.loggers
 
 import android.location.Location
+import com.apprikart.rotationmatrixdemo.Utils
 import com.apprikart.rotationmatrixdemo.filters.Coordinates
 import com.apprikart.rotationmatrixdemo.filters.GeoHash
 import com.apprikart.rotationmatrixdemo.filters.GeoPoint
+import com.elvishew.xlog.XLog
 
 class GeohashRTFilter(private val geohashPrecision: Int, private val geohashminPointCount: Int) {
 
@@ -42,6 +44,9 @@ class GeohashRTFilter(private val geohashPrecision: Int, private val geohashminP
     }
 
     fun filter(loc: Location) {
+
+        XLog.i("${Utils.GEOHASH_FILTERED_GPS_DATA} :: Time : ${loc.time}, Latitude : ${loc.latitude}, Longitude : ${loc.longitude}, Altitude : ${loc.altitude}")
+
 
         val pi = GeoPoint(loc.latitude, loc.longitude)
 
@@ -184,6 +189,10 @@ class GeohashRTFilter(private val geohashPrecision: Int, private val geohashminP
 
     fun getDistanceAsIsHP(): Double {
         return mDistanceAsIsHp
+    }
+
+    fun getGeoFilteredTrack(): List<Location> {
+        return mGeoFilteredTrack
     }
 
 }

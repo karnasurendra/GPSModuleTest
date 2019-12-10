@@ -9,6 +9,7 @@ open class Utils {
     companion object {
         const val LOCATION_FROM_FILTER = "Location Service"
         const val GEOHASH_DEFAULT_PREC = 6
+//        const val GEOHASH_DEFAULT_PREC = 7
         const val GEOHASH_DEFAULT_MIN_POINT_COUNT = 2
         const val ACCELERATION_TEXT_FILE = "/Acceleration.txt"
         const val GYROSCOPE_TEXT_FILE = "/Gyroscope.txt"
@@ -25,10 +26,19 @@ open class Utils {
         const val MAGNETOMETER = "Magnetometer"
         const val LINEAR_ACCELERATION = "Linear Acceleration"
         const val ROTATION_VECTOR = "Rotation Vector"
-        const val ROTATION_MATRIX= "Rotation Matrix"
+        const val ROTATION_MATRIX = "Rotation Matrix"
         const val INVERSE_ROTATION_MATRIX = "Inverse Rotation Matrix"
-        const val ACCELERATION_IN_ABSOLUTE_COORDINATE_SYSTEM= "Acceleration vector in absolute coordinate system"
+        const val ACCELERATION_IN_ABSOLUTE_COORDINATE_SYSTEM =
+            "Acceleration vector in absolute coordinate system"
         const val LINEAR_ACCELERATION_AFTER_ROTATION = "Linear acceleration after rotation"
+        const val KALMAN_FILTER_PREDICTED_STATE = "Kalman filter predicted state estimate"
+        const val GEOHASH_FILTERED_GPS_DATA = "Filtered GPS Data"
+        const val LOCATION_UPDATED_DATA = "Location from GPS"
+        const val KALMAN_FILTER_UPDATED_STATE = "Kalman filter updated state estimate"
+        const val KALMAN_FILTER_PREDICTED_ESTIMATE_COVARIANCE =
+            "Kalman filter predicted estimate covariance"
+        const val KALMAN_FILTER_UPDATED_ESTIMATE_COVARIANCE =
+            "Kalman filter updated estimate covariance"
 
         fun nano2milli(nano: Long): Long {
             return (nano / 1e6).toLong()

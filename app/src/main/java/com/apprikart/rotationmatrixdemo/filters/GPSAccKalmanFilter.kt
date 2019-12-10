@@ -1,5 +1,7 @@
 package com.apprikart.rotationmatrixdemo.filters
 
+import com.elvishew.xlog.XLog
+
 // This is Primary Constructor in Kotlin
 class GPSAccKalmanFilter(private var isFromDependency: Boolean) {
 

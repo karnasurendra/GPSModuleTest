@@ -1,13 +1,18 @@
 package com.apprikart.rotationmatrixdemo.filters
 
+import com.elvishew.xlog.XLog
+
 class Matrix(private var rows: Int, private var cols: Int) {
 
     var data: Array<DoubleArray> = Array(rows) { DoubleArray(cols) }
 
     // vararg will accept n number of elements as input
     fun setData(vararg args: Double) {
+        if (args.size != rows * cols) {
+            XLog.i("Checking for ZK issue in Matrix rows : $rows, Cols : $cols and Args Size ${args.size}")
+        }
         assert(args.size == rows * cols)
-        for (r in 0 until rows) {
+         for (r in 0 until rows) {
             for (c in 0 until cols) {
                 data[r][c] = args[r * cols + c]
             }

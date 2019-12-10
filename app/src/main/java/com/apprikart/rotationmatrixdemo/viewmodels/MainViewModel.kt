@@ -9,6 +9,7 @@ import com.apprikart.rotationmatrixdemo.filters.Coordinates
 import com.apprikart.rotationmatrixdemo.filters.GPSAccKalmanFilter
 import com.apprikart.rotationmatrixdemo.loggers.GeohashRTFilter
 import com.apprikart.rotationmatrixdemo.models.SensorGpsDataItem
+import com.elvishew.xlog.XLog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -73,13 +74,18 @@ class MainViewModel(
                 } else {
                     handleUpdate(sdi)
                     val location = locationAfterUpdateStep(sdi)
+
+                    if (geohashRTFilter.getGeoFilteredTrack().isNotEmpty()) {
+                        for (loc in geohashRTFilter.getGeoFilteredTrack()) {
+                            XLog.i("Locations from Filtered track Latitude : ${loc.latitude}, Longitude : ${loc.longitude} ")
+                        }
+                    }
+
                     onLocationChangedImp(location)
                 }
             }
 
             isTaskLooping = false
-
-
 
         }
     }

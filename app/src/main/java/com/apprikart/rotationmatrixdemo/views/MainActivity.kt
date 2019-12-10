@@ -1,7 +1,6 @@
 package com.apprikart.rotationmatrixdemo.views
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
 import android.content.DialogInterface
@@ -12,11 +11,11 @@ import android.location.Location
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.PowerManager
 import android.provider.Settings
 import android.util.Log
 import android.view.View
 import android.view.View.GONE
+import android.view.WindowManager
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
@@ -179,13 +178,15 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                 // Converting the event values to an Array
                 System.arraycopy(event.values, 0, linAcceleration, 0, event.values.size)
 
-                XLog.d("${Utils.LINEAR_ACCELERATION} - \n [ ${linAcceleration[0]} \n ${linAcceleration[1]} \n ${linAcceleration[2]} \n ${linAcceleration[3]} ]")
+//                XLog.i("${Utils.LINEAR_ACCELERATION} - \n [ ${linAcceleration[0]} \n ${linAcceleration[1]} \n ${linAcceleration[2]} \n ${linAcceleration[3]} ]")
 
-                XLog.d("${Utils.INVERSE_ROTATION_MATRIX} From Linear Acceleration - \n [" +
-                        "${invertedRotationMatrix[0]} ${invertedRotationMatrix[1]} ${invertedRotationMatrix[2]} ${invertedRotationMatrix[3]} \n" +
-                        "${invertedRotationMatrix[4]} ${invertedRotationMatrix[5]} ${invertedRotationMatrix[6]} ${invertedRotationMatrix[7]} \n" +
-                        "${invertedRotationMatrix[8]} ${invertedRotationMatrix[9]} ${invertedRotationMatrix[10]} ${invertedRotationMatrix[11]} \n" +
-                        "${invertedRotationMatrix[12]} ${invertedRotationMatrix[13]} ${invertedRotationMatrix[14]} ${invertedRotationMatrix[15]}  ]")
+                /*XLog.i(
+                    "${Utils.INVERSE_ROTATION_MATRIX} From Linear Acceleration - \n [" +
+                            "${invertedRotationMatrix[0]} ${invertedRotationMatrix[1]} ${invertedRotationMatrix[2]} ${invertedRotationMatrix[3]} \n" +
+                            "${invertedRotationMatrix[4]} ${invertedRotationMatrix[5]} ${invertedRotationMatrix[6]} ${invertedRotationMatrix[7]} \n" +
+                            "${invertedRotationMatrix[8]} ${invertedRotationMatrix[9]} ${invertedRotationMatrix[10]} ${invertedRotationMatrix[11]} \n" +
+                            "${invertedRotationMatrix[12]} ${invertedRotationMatrix[13]} ${invertedRotationMatrix[14]} ${invertedRotationMatrix[15]}  ]"
+                )*/
 
                 // Multiplying the inverted Rotation Matrix values with the linear acceleration sensor values
                 android.opengl.Matrix.multiplyMV(
@@ -197,7 +198,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                     0
                 )
 
-                XLog.d("${Utils.ACCELERATION_IN_ABSOLUTE_COORDINATE_SYSTEM} - \n [ ${accelerationVector[0]} \n ${accelerationVector[1]} \n ${accelerationVector[2]} \n ${accelerationVector[3]} ]")
+//                XLog.i("${Utils.ACCELERATION_IN_ABSOLUTE_COORDINATE_SYSTEM} - \n [ ${accelerationVector[0]} \n ${accelerationVector[1]} \n ${accelerationVector[2]} \n ${accelerationVector[3]} ]")
 
                 // acceleration vector in the “absolute” coordinate system
                 rotation_matrix_x_val.text = accelerationVector[0].toString()
@@ -282,31 +283,36 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
                 rotationVectorQueue.add(rotationVectorModel)
 
+                /*XLog.i(
+                    "${Utils.ROTATION_VECTOR} - \n [" +
+                            "${event.values[0]} \n ${event.values[1]} \n ${event.values[2]} \n ${event.values[3]} \n ]"
+                )*/
+
 
                 // Getting Rotation Matrix values from Rotation Vector Component, which is 16 size array in Matrix form 4 x 4 matrix
                 // one dimensions for each axis x, y, and z, plus one dimension to represent the “origin” in the coordinate system. These are known as homogenous coordinates
                 SensorManager.getRotationMatrixFromVector(mRotationMatrix, event.values)
 
-                XLog.d("${Utils.ROTATION_VECTOR} - \n [" +
-                        "${event.values[0]} \n ${event.values[1]} \n ${event.values[2]} \n ${event.values[3]} \n ]")
 
 
-                XLog.d("${Utils.ROTATION_MATRIX} - \n [" +
-                        "${mRotationMatrix[0]} ${mRotationMatrix[1]} ${mRotationMatrix[2]} ${mRotationMatrix[3]} \n" +
-                        "${mRotationMatrix[4]} ${mRotationMatrix[5]} ${mRotationMatrix[6]} ${mRotationMatrix[7]} \n" +
-                        "${mRotationMatrix[8]} ${mRotationMatrix[9]} ${mRotationMatrix[10]} ${mRotationMatrix[11]} \n" +
-                        "${mRotationMatrix[12]} ${mRotationMatrix[13]} ${mRotationMatrix[14]} ${mRotationMatrix[15]}  ]")
-
+                /*XLog.d(
+                    "${Utils.ROTATION_MATRIX} - \n [" +
+                            "${mRotationMatrix[0]} ${mRotationMatrix[1]} ${mRotationMatrix[2]} ${mRotationMatrix[3]} \n" +
+                            "${mRotationMatrix[4]} ${mRotationMatrix[5]} ${mRotationMatrix[6]} ${mRotationMatrix[7]} \n" +
+                            "${mRotationMatrix[8]} ${mRotationMatrix[9]} ${mRotationMatrix[10]} ${mRotationMatrix[11]} \n" +
+                            "${mRotationMatrix[12]} ${mRotationMatrix[13]} ${mRotationMatrix[14]} ${mRotationMatrix[15]}  ]"
+                )*/
 
                 // Inverting the 4 x 4 Rotation Matrix Values and saving to invertedRotationMatrix
                 android.opengl.Matrix.invertM(invertedRotationMatrix, 0, mRotationMatrix, 0)
 
-                XLog.d("${Utils.INVERSE_ROTATION_MATRIX} From Rotation Vector - \n [" +
-                        "${invertedRotationMatrix[0]} ${invertedRotationMatrix[1]} ${invertedRotationMatrix[2]} ${invertedRotationMatrix[3]} \n" +
-                        "${invertedRotationMatrix[4]} ${invertedRotationMatrix[5]} ${invertedRotationMatrix[6]} ${invertedRotationMatrix[7]} \n" +
-                        "${invertedRotationMatrix[8]} ${invertedRotationMatrix[9]} ${invertedRotationMatrix[10]} ${invertedRotationMatrix[11]} \n" +
-                        "${invertedRotationMatrix[12]} ${invertedRotationMatrix[13]} ${invertedRotationMatrix[14]} ${invertedRotationMatrix[15]}  ]")
-
+                /*XLog.d(
+                    "${Utils.INVERSE_ROTATION_MATRIX} From Rotation Vector - \n [" +
+                            "${invertedRotationMatrix[0]} ${invertedRotationMatrix[1]} ${invertedRotationMatrix[2]} ${invertedRotationMatrix[3]} \n" +
+                            "${invertedRotationMatrix[4]} ${invertedRotationMatrix[5]} ${invertedRotationMatrix[6]} ${invertedRotationMatrix[7]} \n" +
+                            "${invertedRotationMatrix[8]} ${invertedRotationMatrix[9]} ${invertedRotationMatrix[10]} ${invertedRotationMatrix[11]} \n" +
+                            "${invertedRotationMatrix[12]} ${invertedRotationMatrix[13]} ${invertedRotationMatrix[14]} ${invertedRotationMatrix[15]}  ]"
+                )*/
             }
         }
     }
@@ -315,8 +321,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         Manifest.permission.WRITE_EXTERNAL_STORAGE,
         Manifest.permission.READ_EXTERNAL_STORAGE,
         Manifest.permission.ACCESS_FINE_LOCATION,
-        Manifest.permission.ACCESS_COARSE_LOCATION,
-        Manifest.permission.WAKE_LOCK
+        Manifest.permission.ACCESS_COARSE_LOCATION
     )
     private lateinit var sensorManager: SensorManager
     private val mRotationMatrix = FloatArray(16)
@@ -336,8 +341,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         PriorityBlockingQueue()
     private val permissionReqCode = 100
     private val frequencyArrays = arrayOf("Normal", "Game", "UI", "Fast")
-    private lateinit var powerManager: PowerManager
-    private lateinit var wakeLock: PowerManager.WakeLock
     private var isSensorAvailability = false
     // Queues to Store sensor values before writing to text values
     private var accQueue: Queue<AccModel> = PriorityBlockingQueue()
@@ -369,7 +372,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         mBinding.lifecycleOwner = this
         mBinding.mainViewModel = mainViewModel
 
-        initPowerLock()
+        // This is make screen awake
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
         checkPermissions()
 
 
@@ -505,7 +510,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
     }
 
-    @SuppressLint("WakelockTimeout")
     private fun initializeSensors() {
         // Initializing System Service
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
@@ -525,18 +529,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         // Checking for Rotation Vector and registering
         registerRotationVector()
 
-        if (isSensorAvailability)
-            wakeLock.acquire()   // This one requires specific timeout once the wakelock started, but we need wakelock while running sensors
 
     }
 
-    private fun initPowerLock() {
-        powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
-        wakeLock = powerManager.newWakeLock(
-            PowerManager.PARTIAL_WAKE_LOCK,
-            resources.getString(R.string.wake_lock_tag)
-        )
-    }
 
     private fun registerRotationVector() {
         if (sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR) != null) {
@@ -916,6 +911,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
     // Location is initializing here
     private fun initiateLocation() {
+        Log.d("Main::","Checking Location Call back initiateLocation")
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
         locationRequest = LocationRequest.create()
         locationRequest.interval = TimeUnit.SECONDS.toMillis(10)
@@ -930,6 +926,10 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
                     // This is will tell whether the location is Fake location or original location, so if it is Fake location we need to return
                     if (location.isFromMockProvider) return
+
+                    XLog.i("${Utils.LOCATION_UPDATED_DATA} :: Time : ${location.time}, Latitude : " +
+                            "${location.latitude}, Longitude : ${location.longitude}, Altitude : ${location.altitude}")
+
                     val xLong: Double = location.longitude
                     val yLat: Double = location.latitude
                     val speed: Double = location.speed.toDouble()
@@ -954,7 +954,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                     // Only once it has to initialize, It will initialize from DI it will not be null
                     if (mainViewModel.gpsAccKalmanFilter.isInitializedFromDI()) {
                         mainViewModel.gpsAccKalmanFilter.manualInit(
-                            false,
+                            true, // As per the reference project it is always false
                             Coordinates.longitudeToMeters(xLong),
                             Coordinates.latitudeToMeters(yLat),
                             xVel,
@@ -1030,8 +1030,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         unRegisterSensors()
         // Stopping the filter
         mainViewModel.geohashRTFilter.stop()
-        if (wakeLock.isHeld)
-            wakeLock.release()
+
     }
 
     private fun unRegisterSensors() {
