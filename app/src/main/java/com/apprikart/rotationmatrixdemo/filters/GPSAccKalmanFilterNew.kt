@@ -1,14 +1,12 @@
 package com.apprikart.rotationmatrixdemo.filters
 
-import com.elvishew.xlog.XLog
-
 // This is Primary Constructor in Kotlin
-class GPSAccKalmanFilter(private var isFromDependency: Boolean) {
+class GPSAccKalmanFilterNew(private var isFromDependency: Boolean) {
 
     private var mTimeStampMsPredict: Double = 0.0
     private var mTimeStampMsUpdate: Double = 0.0
     private var mUseGpsSpeed = false
-    private lateinit var kalmanFilter: KalmanFilter
+    private lateinit var kalmanFilterNew: KalmanFilterNew
     private var accSigma: Double = 0.0
     private var predictCount = 0
     private var mVelFactor: Double = 0.0
@@ -35,18 +33,18 @@ class GPSAccKalmanFilter(private var isFromDependency: Boolean) {
         val mesDim = if (useGpsSpeed) 4 else 2
         mUseGpsSpeed = useGpsSpeed
 
-        kalmanFilter = KalmanFilter(4, mesDim, 2)
+        kalmanFilterNew = KalmanFilterNew(4, mesDim, 2)
         mTimeStampMsPredict = timeStampMs.also { mTimeStampMsUpdate = it }
         accSigma = accDev
         predictCount = 0
         // Logs
         // System State vector constructing here
-        kalmanFilter.xkK.setData(x, y, xVel, yVel)
+        kalmanFilterNew.xkK.setData(x, y, xVel, yVel)
 
         // Log for all below lines
-        kalmanFilter.h.setIdentityDiag()
-        kalmanFilter.pkK.setIdentity()
-        kalmanFilter.pkK.scale(posDev) // posDev is accuracy from GPS
+        kalmanFilterNew.h.setIdentityDiag()
+        kalmanFilterNew.pkK.setIdentity()
+        kalmanFilterNew.pkK.scale(posDev) // posDev is accuracy from GPS
         mVelFactor = velFactor
         mPosFactor = posVector
 
@@ -72,8 +70,8 @@ class GPSAccKalmanFilter(private var isFromDependency: Boolean) {
         rebuildQ(dtUpdate, accSigma)
 
         mTimeStampMsPredict = timeNowMs
-        kalmanFilter.predict()
-        Matrix.matrixCopy(kalmanFilter.xkKm1, kalmanFilter.xkK)
+        kalmanFilterNew.predict()
+        MatrixNew.matrixCopy(kalmanFilterNew.xkKm1, kalmanFilterNew.xkK)
 
     }
 
@@ -91,8 +89,8 @@ class GPSAccKalmanFilter(private var isFromDependency: Boolean) {
         mTimeStampMsUpdate = timeStamp
         rebuildR(posDev, velErr)
         // Log Main
-        kalmanFilter.zk.setData(x, y, xVel, yVel)
-        kalmanFilter.update()
+        kalmanFilterNew.zk.setData(x, y, xVel, yVel)
+        kalmanFilterNew.update()
 
     }
 
@@ -107,10 +105,10 @@ class GPSAccKalmanFilter(private var isFromDependency: Boolean) {
                 0.0, 0.0, mVelSigma, 0.0,
                 0.0, 0.0, 0.0, mVelSigma
             )
-            kalmanFilter.r.setData(*r)
+            kalmanFilterNew.r.setData(*r)
         } else {
-            kalmanFilter.r.setIdentity()
-            kalmanFilter.r.scale(mPosSigma)
+            kalmanFilterNew.r.setIdentity()
+            kalmanFilterNew.r.scale(mPosSigma)
         }
     }
 
@@ -135,12 +133,12 @@ class GPSAccKalmanFilter(private var isFromDependency: Boolean) {
             covDev, 0.0, velSig, 0.0,
             0.0, covDev, 0.0, velSig
         )
-        kalmanFilter.q.setData(*q)
+        kalmanFilterNew.q.setData(*q)
     }
 
     // Control Vector constructing here
     private fun reBuildU(xAcc: Double, yAcc: Double) {
-        kalmanFilter.uk.setData(xAcc, yAcc)
+        kalmanFilterNew.uk.setData(xAcc, yAcc)
     }
 
     /*Control - Input Model Constructing here*/
@@ -152,7 +150,7 @@ class GPSAccKalmanFilter(private var isFromDependency: Boolean) {
             dtPredict, 0.0,
             0.0, dtPredict
         )
-        kalmanFilter.b.setData(*b)
+        kalmanFilterNew.b.setData(*b)
     }
 
     /* State Transition model constructing here*/
@@ -163,23 +161,23 @@ class GPSAccKalmanFilter(private var isFromDependency: Boolean) {
             0.0, 0.0, 1.0, 0.0,
             0.0, 0.0, 0.0, 1.0
         )
-        kalmanFilter.f.setData(*f)
+        kalmanFilterNew.f.setData(*f)
     }
 
     fun getCurrentX(): Double {
-        return kalmanFilter.xkK.data[0][0]
+        return kalmanFilterNew.xkK.data[0][0]
     }
 
     fun getCurrentY(): Double {
-        return kalmanFilter.xkK.data[1][0]
+        return kalmanFilterNew.xkK.data[1][0]
     }
 
     fun getCurrentXVel(): Double {
-        return kalmanFilter.xkK.data[2][0]
+        return kalmanFilterNew.xkK.data[2][0]
     }
 
     fun getCurrentYVel(): Double {
-        return kalmanFilter.xkK.data[3][0]
+        return kalmanFilterNew.xkK.data[3][0]
     }
 
 }

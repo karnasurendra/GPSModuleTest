@@ -2,7 +2,7 @@ package com.apprikart.rotationmatrixdemo.filters
 
 import com.elvishew.xlog.XLog
 
-class Matrix(private var rows: Int, private var cols: Int) {
+class MatrixNew(private var rows: Int, private var cols: Int) {
 
     var data: Array<DoubleArray> = Array(rows) { DoubleArray(cols) }
 
@@ -75,7 +75,7 @@ class Matrix(private var rows: Int, private var cols: Int) {
 
     companion object {
 
-        fun matrixAdd(ma: Matrix, mb: Matrix, mc: Matrix) {
+        fun matrixAdd(ma: MatrixNew, mb: MatrixNew, mc: MatrixNew) {
             assert(ma.cols == mb.cols && mb.cols == mc.cols)
             assert(ma.rows == mb.rows && mb.rows == mc.rows)
 
@@ -92,7 +92,7 @@ class Matrix(private var rows: Int, private var cols: Int) {
             }
         }
 
-        fun matrixMultiply(ma: Matrix, mb: Matrix, mc: Matrix) {
+        fun matrixMultiply(ma: MatrixNew, mb: MatrixNew, mc: MatrixNew) {
             assert(ma.cols == mb.rows)
             assert(ma.rows == mc.rows)
             assert(mb.cols == mc.cols)
@@ -121,9 +121,9 @@ class Matrix(private var rows: Int, private var cols: Int) {
         }
 
         fun matrixMultiplyByTranspose(
-            ma: Matrix,
-            mb: Matrix,
-            mc: Matrix
+            ma: MatrixNew,
+            mb: MatrixNew,
+            mc: MatrixNew
         ) {
             assert(ma.cols == mb.cols)
             assert(ma.rows == mc.rows)
@@ -147,8 +147,8 @@ class Matrix(private var rows: Int, private var cols: Int) {
         }
 
         fun matrixCopy(
-            mSrc: Matrix,
-            mDst: Matrix
+            mSrc: MatrixNew,
+            mDst: MatrixNew
         ) {
             assert(mSrc.rows == mDst.rows && mSrc.cols == mDst.cols)
             for (r in 0 until mSrc.rows) {
@@ -159,9 +159,9 @@ class Matrix(private var rows: Int, private var cols: Int) {
         }
 
         fun matrixSubtract(
-            ma: Matrix,
-            mb: Matrix,
-            mc: Matrix
+            ma: MatrixNew,
+            mb: MatrixNew,
+            mc: MatrixNew
         ) {
             assert(ma.cols == mb.cols && mb.cols == mc.cols)
             assert(ma.rows == mb.rows && mb.rows == mc.rows)
@@ -173,8 +173,8 @@ class Matrix(private var rows: Int, private var cols: Int) {
         }
 
         fun matrixDestructiveInvert(
-            mtxIn: Matrix,
-            mtxOut: Matrix
+            mtxIn: MatrixNew,
+            mtxOut: MatrixNew
         ): Boolean {
             assert(mtxIn.cols == mtxIn.rows)
             assert(mtxOut.cols == mtxIn.cols)
@@ -216,7 +216,7 @@ class Matrix(private var rows: Int, private var cols: Int) {
             return true
         }
 
-        fun matrixSubtractFromIdentity(m: Matrix) {
+        fun matrixSubtractFromIdentity(m: MatrixNew) {
             var c: Int
             var r = 0
             while (r < m.rows) {

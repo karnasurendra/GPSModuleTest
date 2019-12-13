@@ -1,6 +1,5 @@
 package com.apprikart.rotationmatrixdemo.di
 
-import com.apprikart.rotationmatrixdemo.filters.GPSAccKalmanFilter
 import com.apprikart.rotationmatrixdemo.views.MainActivity
 import dagger.Component
 import javax.inject.Singleton

@@ -7,16 +7,16 @@ import kotlin.math.sin
 /**
  * Created by Karna on 2/13/18.
  */
-data class SensorGpsDataItem(
+data class SensorGpsDataItemNew(
     var timestamp: Double,
     var gpsLat: Double, var gpsLon: Double, var gpsAlt: Double,
     var absNorthAcc: Double, var absEastAcc: Double, var absUpAcc: Double,
     var speed: Double, var course: Double,
     var posErr: Double, var velErr: Double,
     val declination: Double
-) : Comparable<SensorGpsDataItem> {
+) : Comparable<SensorGpsDataItemNew> {
 
-    override fun compareTo(@NonNull other: SensorGpsDataItem): Int {
+    override fun compareTo(@NonNull other: SensorGpsDataItemNew): Int {
         return (timestamp - other.timestamp).toInt()
     }
 
