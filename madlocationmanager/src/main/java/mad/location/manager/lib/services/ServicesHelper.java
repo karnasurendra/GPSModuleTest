@@ -1,4 +1,4 @@
-package mad.location.manager.lib.Services;
+package mad.location.manager.lib.services;
 
 import android.content.ComponentName;
 import android.content.Context;

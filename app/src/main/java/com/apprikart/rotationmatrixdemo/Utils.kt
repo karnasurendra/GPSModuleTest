@@ -32,9 +32,11 @@ open class Utils {
             "Acceleration vector in absolute coordinate system"
         const val LINEAR_ACCELERATION_AFTER_ROTATION = "Linear acceleration after rotation"
         const val KALMAN_FILTER_PREDICTED_STATE = "Kalman filter predicted state estimate"
+        const val KALMAN_FILTER_PREDICTED_STATE_LOCATION = "Kalman filter predicted Lat Long Values"
         const val GEOHASH_FILTERED_GPS_DATA = "Filtered GPS Data"
         const val LOCATION_UPDATED_DATA = "Location from GPS"
         const val KALMAN_FILTER_UPDATED_STATE = "Kalman filter updated state estimate"
+        const val KALMAN_FILTER_UPDATED_STATE_LOCATION = "Kalman filter updated Location"
         const val KALMAN_FILTER_PREDICTED_ESTIMATE_COVARIANCE =
             "Kalman filter predicted estimate covariance"
         const val KALMAN_FILTER_UPDATED_ESTIMATE_COVARIANCE =

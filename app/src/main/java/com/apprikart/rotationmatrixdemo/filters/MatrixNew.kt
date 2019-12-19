@@ -1,6 +1,7 @@
 package com.apprikart.rotationmatrixdemo.filters
 
-import com.elvishew.xlog.XLog
+import android.util.Log
+
 
 class MatrixNew(private var rows: Int, private var cols: Int) {
 
@@ -8,11 +9,10 @@ class MatrixNew(private var rows: Int, private var cols: Int) {
 
     // vararg will accept n number of elements as input
     fun setData(vararg args: Double) {
-        if (args.size != rows * cols) {
-            XLog.i("Checking for ZK issue in Matrix rows : $rows, Cols : $cols and Args Size ${args.size}")
-        }
+        Log.d("Matric::", "Checking for Assertion before")
         assert(args.size == rows * cols)
-         for (r in 0 until rows) {
+        Log.d("Matric::", "Checking for Assertion inside")
+        for (r in 0 until rows) {
             for (c in 0 until cols) {
                 data[r][c] = args[r * cols + c]
             }

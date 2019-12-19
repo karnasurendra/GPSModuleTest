@@ -28,7 +28,6 @@ import com.apprikart.rotationmatrixdemo.Utils
 import com.apprikart.rotationmatrixdemo.databinding.ActivityMainBinding
 import com.apprikart.rotationmatrixdemo.filters.CoordinatesNew
 import com.apprikart.rotationmatrixdemo.models.SensorGpsDataItemNew
-import com.apprikart.rotationmatrixdemo.models.sensorvaluemodels.*
 import com.apprikart.rotationmatrixdemo.viewmodels.MainViewModel
 import com.elvishew.xlog.XLog
 import com.google.android.gms.location.*
@@ -66,28 +65,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                         2 -> mBinding.accZVal.text = event.values[i].toString()
                     }
                 }
-
-                val accNow = android.os.SystemClock.elapsedRealtimeNanos()
-                val accNowMs =
-                    Utils.nano2milli(
-                        accNow
-                    )
-
-                // Here Creating an Model of Acceleration and adding those values to Queue
-                val accModel =
-                    AccModel(
-                        Utils.ACCELERATION,
-                        acc_spinner.selectedItem.toString(),
-                        accNowMs.toDouble(),
-                        event.values[0].toString(),
-                        event.values[1].toString(),
-                        event.values[2].toString()
-                    )
-
-                accQueue.add(accModel)
-
-//                XLog.d("${Utils.ACCELERATION} - [ X : ${event.values[0]}, Y : ${event.values[1]}, Z : ${event.values[2]} ]")
-
             }
             Sensor.TYPE_GYROSCOPE -> {
                 for (i in event.values.indices) {
@@ -97,26 +74,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                         2 -> mBinding.gyroZVal.text = event.values[i].toString()
                     }
                 }
-
-                val gyroNow = android.os.SystemClock.elapsedRealtimeNanos()
-                val gyroNowMs =
-                    Utils.nano2milli(
-                        gyroNow
-                    )
-
-                // Here Creating an Model of Gyroscope and adding those values to Queue
-                val gyroModel =
-                    GyroModel(
-                        Utils.GYROSCOPE,
-                        gyro_spinner.selectedItem.toString(),
-                        gyroNowMs.toDouble(),
-                        event.values[0].toString(),
-                        event.values[1].toString(),
-                        event.values[2].toString()
-                    )
-
-                gyroQueue.add(gyroModel)
-
             }
             Sensor.TYPE_MAGNETIC_FIELD -> {
                 for (i in event.values.indices) {
@@ -126,25 +83,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                         2 -> mBinding.magZVal.text = event.values[i].toString()
                     }
                 }
-
-                val magNow = android.os.SystemClock.elapsedRealtimeNanos()
-                val magNowMs =
-                    Utils.nano2milli(
-                        magNow
-                    )
-
-                // Here Creating an Model of Magnetometer and adding those values to Queue
-                val magModel =
-                    MagModel(
-                        Utils.MAGNETOMETER,
-                        mag_spinner.selectedItem.toString(),
-                        magNowMs.toDouble(),
-                        event.values[0].toString(),
-                        event.values[1].toString(),
-                        event.values[2].toString()
-                    )
-
-                magQueue.add(magModel)
             }
             Sensor.TYPE_LINEAR_ACCELERATION -> {
                 for (i in event.values.indices) {
@@ -154,25 +92,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                         2 -> mBinding.linearZVal.text = event.values[i].toString()
                     }
                 }
-
-                val lANow = android.os.SystemClock.elapsedRealtimeNanos()
-                val lANowMs =
-                    Utils.nano2milli(
-                        lANow
-                    )
-
-                // Here Creating an Model of Linear Acceleration and adding those values to Queue
-                val linearAccModel =
-                    LinearAccModel(
-                        Utils.LINEAR_ACCELERATION,
-                        linear_acc_spinner.selectedItem.toString(),
-                        lANowMs.toDouble(),
-                        event.values[0].toString(),
-                        event.values[1].toString(),
-                        event.values[2].toString()
-                    )
-
-                linearAccQueue.add(linearAccModel)
 
                 // Converting the event values to an Array
                 System.arraycopy(event.values, 0, linAcceleration, 0, event.values.size)
@@ -204,24 +123,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                 rotation_matrix_y_val.text = accelerationVector[1].toString()
                 rotation_matrix_z_val.text = accelerationVector[2].toString()
 
-                val laAfterRotNow = android.os.SystemClock.elapsedRealtimeNanos()
-                val laAfterRotNowMs =
-                    Utils.nano2milli(
-                        laAfterRotNow
-                    )
-
-                // Here Creating an Model of Linear Acceleration after rotation and adding those values to Queue
-                val laAfterRotation =
-                    LAAfterRotation(
-                        Utils.LINEAR_ACCELERATION_AFTER_ROTATION,
-                        laAfterRotNowMs.toDouble(),
-                        accelerationVector[0].toString(),
-                        accelerationVector[1].toString(),
-                        accelerationVector[2].toString()
-                    )
-
-                linearAccAfterRotationQueue.add(laAfterRotation)
-
                 // It will initialize once the Location details get triggered
                 if (mainViewModel.gpsAccKalmanFilterNew.isInitializedFromDI()) {
                     return
@@ -248,14 +149,13 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                 mSensorDataQueueNew.add(sensorGpsDataItem)
 
                 // We are checking whether the parallel thread is running or not, if it is not running we are starting again
-                if (!mainViewModel.isTaskLooping) {
+                /*if (!mainViewModel.isTaskLooping) {
                     mainViewModel.initSensorDataLoopTask(mSensorDataQueueNew)
-                }
+                }*/
 
             }
 
             Sensor.TYPE_ROTATION_VECTOR -> {
-
                 for (i in event.values.indices) {
                     when (i) {
                         0 -> mBinding.rotationVectorXVal.text = event.values[i].toString()
@@ -263,24 +163,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                         2 -> mBinding.rotationVectorZVal.text = event.values[i].toString()
                     }
                 }
-
-                val rVNow = android.os.SystemClock.elapsedRealtimeNanos()
-                val rVNowMs =
-                    Utils.nano2milli(
-                        rVNow
-                    )
-
-                val rotationVectorModel =
-                    RotationVectorModel(
-                        Utils.ROTATION_VECTOR,
-                        rotation_vec_spinner.selectedItem.toString(),
-                        rVNowMs.toDouble(),
-                        event.values[0].toString(),
-                        event.values[1].toString(),
-                        event.values[3].toString()
-                    )
-
-                rotationVectorQueue.add(rotationVectorModel)
 
                 /*XLog.i(
                     "${Utils.ROTATION_VECTOR} - \n [" +
@@ -291,7 +173,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                 // Getting Rotation Matrix values from Rotation Vector Component, which is 16 size array in Matrix form 4 x 4 matrix
                 // one dimensions for each axis x, y, and z, plus one dimension to represent the “origin” in the coordinate system. These are known as homogenous coordinates
                 SensorManager.getRotationMatrixFromVector(mRotationMatrix, event.values)
-
 
 
                 /*XLog.d(
@@ -341,13 +222,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     private val permissionReqCode = 100
     private val frequencyArrays = arrayOf("Normal", "Game", "UI", "Fast")
     private var isSensorAvailability = false
-    // Queues to Store sensor values before writing to text values
-    private var accQueue: Queue<AccModel> = PriorityBlockingQueue()
-    private var gyroQueue: Queue<GyroModel> = PriorityBlockingQueue()
-    private var magQueue: Queue<MagModel> = PriorityBlockingQueue()
-    private var linearAccQueue: Queue<LinearAccModel> = PriorityBlockingQueue()
-    private var rotationVectorQueue: Queue<RotationVectorModel> = PriorityBlockingQueue()
-    private var linearAccAfterRotationQueue: Queue<LAAfterRotation> = PriorityBlockingQueue()
     private lateinit var mainViewModel: MainViewModel
     @Inject
     lateinit var mainViewModelFactory: MainViewModel.Companion.Factory
@@ -371,11 +245,16 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 //        mBinding.lifecycleOwner = this
         mBinding.mainViewModel = mainViewModel
 
+
         // This is make screen awake
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         checkPermissions()
 
+        // Updating the distance in TV
+        mainViewModel.geoValues.observeForever {
+            mBinding.distanceValuesTv.text = it
+        }
 
     }
 
@@ -470,6 +349,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         initiateLocation()
         // Initializing the Sensors
         initializeSensors()
+        mainViewModel.needTerminate = false
         // Starting the background task
         mainViewModel.initSensorDataLoopTask(mSensorDataQueueNew)
     }
@@ -875,15 +755,16 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
     // Location is initializing here
     private fun initiateLocation() {
-        Log.d("Main::","Checking Location Call back initiateLocation")
+        Log.d("Main::", "Checking Location Call back initiateLocation")
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
         locationRequest = LocationRequest.create()
-        locationRequest.interval = TimeUnit.SECONDS.toMillis(10)
+        locationRequest.interval = TimeUnit.SECONDS.toMillis(30)
         locationRequest.fastestInterval = TimeUnit.SECONDS.toMillis(10)
         locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult?) {
                 super.onLocationResult(locationResult)
+
                 if (locationResult == null) return
                 for (location in locationResult.locations) {
                     if (location == null) return
@@ -891,8 +772,10 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                     // This is will tell whether the location is Fake location or original location, so if it is Fake location we need to return
                     if (location.isFromMockProvider) return
 
-                    XLog.i("${Utils.LOCATION_UPDATED_DATA} :: Time : ${location.time}, Latitude : " +
-                            "${location.latitude}, Longitude : ${location.longitude}, Altitude : ${location.altitude}")
+                    /*XLog.i(
+                        "${Utils.LOCATION_UPDATED_DATA} :: Time : ${location.time}, Latitude : " +
+                                "${location.latitude}, Longitude : ${location.longitude}, Altitude : ${location.altitude}"
+                    )*/
 
                     val xLong: Double = location.longitude
                     val yLat: Double = location.latitude
@@ -904,6 +787,10 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                     val xVel: Double = speed * cos(course)
                     val yVel: Double = speed * sin(course)
                     val accuracy: Double = location.accuracy.toDouble()
+
+
+                    Log.d("MainActivity::","Location and Accuracy Latitude : ${location.latitude}, Longitude : ${location.longitude}, " +
+                            "Accuracy : ${location.accuracy.toDouble()}, Provider : ${location.provider}")
 
                     val timeStamp: Long =
                         Utils.nano2milli(
@@ -918,7 +805,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                     // Only once it has to initialize, It will initialize from DI it will not be null
                     if (mainViewModel.gpsAccKalmanFilterNew.isInitializedFromDI()) {
                         mainViewModel.gpsAccKalmanFilterNew.manualInit(
-                            true, // As per the reference project it is always false
+                            false, // As per the reference project it is always false
                             CoordinatesNew.longitudeToMeters(xLong),
                             CoordinatesNew.latitudeToMeters(yLat),
                             xVel,
@@ -930,19 +817,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                             Utils.DEFAULT_POS_FACTOR,
                             false
                         )
-                        /*mainViewModel.gpsAccKalmanFilter = GPSAccKalmanFilter(
-                            false,
-                            Coordinates.longitudeToMeters(xLong),
-                            Coordinates.latitudeToMeters(yLat),
-                            xVel,
-                            yVel,
-                            Utils.ACCELEROMETER_DEFAULT_DEVIATION,
-                            accuracy,
-                            timeStamp.toDouble(),
-                            Utils.DEFAULT_VEL_FACTOR,
-                            Utils.DEFAULT_POS_FACTOR,
-                            false
-                        )*/
+                        return
                     }
 
                     val sensorGpsDataItem =
@@ -963,9 +838,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
                     mSensorDataQueueNew.add(sensorGpsDataItem)
 
-                    if (!mainViewModel.isTaskLooping) {
+                    /*if (!mainViewModel.isTaskLooping) {
                         mainViewModel.initSensorDataLoopTask(mSensorDataQueueNew)
-                    }
+                    }*/
                 }
             }
         }

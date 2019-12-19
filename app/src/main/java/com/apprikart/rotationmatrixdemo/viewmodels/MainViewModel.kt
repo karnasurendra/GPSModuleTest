@@ -9,8 +9,8 @@ import com.apprikart.rotationmatrixdemo.filters.CoordinatesNew
 import com.apprikart.rotationmatrixdemo.filters.GPSAccKalmanFilterNew
 import com.apprikart.rotationmatrixdemo.loggers.GeohashRTFilter
 import com.apprikart.rotationmatrixdemo.models.SensorGpsDataItemNew
-import com.elvishew.xlog.XLog
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
@@ -28,7 +28,7 @@ class MainViewModel(
 ) : AndroidViewModel(application) {
 
     var geoValues = MutableLiveData<String>()
-    var isTaskLooping = false
+    var needTerminate = true
 
     /*fun getValues(): MutableLiveData<String> {
         return geoValues
@@ -55,37 +55,34 @@ class MainViewModel(
             // Minimum time interval between each estimate position calculation in Millis
 //            delay(5000)
             // This is to Check whether the parallel thread is running or not in Activity
-            isTaskLooping = true
+//            isTaskLooping = true
 
-            var sdi: SensorGpsDataItemNew
-            var lastTimeStamp = 0.0
+            while (!needTerminate) {
 
-            while (!mSensorDataQueueNew.isEmpty()) {
+                delay(500)
 
-                sdi = mSensorDataQueueNew.poll()!!
-                if (sdi.timestamp < lastTimeStamp) {
-                    continue
-                }
-                lastTimeStamp = sdi.timestamp
-                // If Location is not triggered, it will be Not Initialized
-                if (sdi.gpsLat == SensorGpsDataItemNew.NOT_INITIALIZED) {
-                    handlePredict(sdi)
-                } else {
-                    handleUpdate(sdi)
-                    val location = locationAfterUpdateStep(sdi)
+                var sdi: SensorGpsDataItemNew
+                var lastTimeStamp = 0.0
 
-                    if (geohashRTFilter.getGeoFilteredTrack().isNotEmpty()) {
-                        for (loc in geohashRTFilter.getGeoFilteredTrack()) {
-                            XLog.i("Locations from Filtered track Latitude : ${loc.latitude}, Longitude : ${loc.longitude} ")
-                        }
+                while (!mSensorDataQueueNew.isEmpty()) {
+
+                    sdi = mSensorDataQueueNew.poll()!!
+                    if (sdi.timestamp < lastTimeStamp) {
+                        continue
                     }
-
-                    onLocationChangedImp(location)
+                    lastTimeStamp = sdi.timestamp
+                    // If Location is not triggered, it will be Not Initialized
+                    if (sdi.gpsLat == SensorGpsDataItemNew.NOT_INITIALIZED) {
+                        handlePredict(sdi)
+                    } else {
+                        handleUpdate(sdi)
+                        val location = locationAfterUpdateStep(sdi)
+                        onLocationChangedImp(location)
+                    }
                 }
+
+//            isTaskLooping = false
             }
-
-            isTaskLooping = false
-
         }
     }
 

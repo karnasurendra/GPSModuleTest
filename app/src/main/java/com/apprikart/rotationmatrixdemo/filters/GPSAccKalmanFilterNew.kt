@@ -1,5 +1,7 @@
 package com.apprikart.rotationmatrixdemo.filters
 
+import android.util.Log
+
 // This is Primary Constructor in Kotlin
 class GPSAccKalmanFilterNew(private var isFromDependency: Boolean) {
 
@@ -88,8 +90,8 @@ class GPSAccKalmanFilterNew(private var isFromDependency: Boolean) {
         predictCount = 0
         mTimeStampMsUpdate = timeStamp
         rebuildR(posDev, velErr)
-        // Log Main
         kalmanFilterNew.zk.setData(x, y, xVel, yVel)
+        Log.d("Matric::", "Checking for Assertion before Update")
         kalmanFilterNew.update()
 
     }
@@ -97,7 +99,6 @@ class GPSAccKalmanFilterNew(private var isFromDependency: Boolean) {
     private fun rebuildR(posSigma: Double, velSigma: Double) {
         val mPosSigma = posSigma * mPosFactor
         val mVelSigma = velSigma * mVelFactor
-
         if (mUseGpsSpeed) {
             val r = doubleArrayOf(
                 mPosSigma, 0.0, 0.0, 0.0,
