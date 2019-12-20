@@ -45,7 +45,7 @@ class GeohashRTFilter(private val geohashPrecision: Int, private val geohashminP
 
     fun filter(loc: Location) {
 
-        XLog.i("${Utils.GEOHASH_FILTERED_GPS_DATA} :: Time : ${loc.time}, Latitude : ${loc.latitude}, Longitude : ${loc.longitude}, Altitude : ${loc.altitude}")
+//        XLog.i("${Utils.GEOHASH_FILTERED_GPS_DATA} :: Time : ${loc.time}, Latitude : ${loc.latitude}, Longitude : ${loc.longitude}, Altitude : ${loc.altitude}")
 
 
         val pi = GeoPointNew(loc.latitude, loc.longitude)

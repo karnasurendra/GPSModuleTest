@@ -1,12 +1,18 @@
 package com.apprikart.rotationmatrixdemo.viewmodels
 
+import android.annotation.SuppressLint
 import android.app.Application
+import android.hardware.GeomagneticField
 import android.location.Location
 import android.util.Log
 import androidx.lifecycle.*
 import com.apprikart.rotationmatrixdemo.Utils
 import com.apprikart.rotationmatrixdemo.filters.CoordinatesNew
 import com.apprikart.rotationmatrixdemo.filters.GPSAccKalmanFilterNew
+import com.apprikart.rotationmatrixdemo.location.LocationEngine
+import com.apprikart.rotationmatrixdemo.location.LocationEngineProvider
+import com.apprikart.rotationmatrixdemo.location.LocationEngineRequest
+import com.apprikart.rotationmatrixdemo.location.LocationUpdateFromEngine
 import com.apprikart.rotationmatrixdemo.loggers.GeohashRTFilter
 import com.apprikart.rotationmatrixdemo.models.SensorGpsDataItemNew
 import kotlinx.coroutines.Dispatchers
@@ -29,10 +35,10 @@ class MainViewModel(
 
     var geoValues = MutableLiveData<String>()
     var needTerminate = true
+    private lateinit var locationEngine: LocationEngine
+    private lateinit var locationUpdateFromEngine: LocationUpdateFromEngine
+    var location = MutableLiveData<Location>()
 
-    /*fun getValues(): MutableLiveData<String> {
-        return geoValues
-    }*/
 
     fun createTextFiles(dir: File, textFileName: String) {
         val file = File(dir.absolutePath, textFileName)
@@ -40,6 +46,25 @@ class MainViewModel(
             file.createNewFile()
             writeToFileInitially(file)
         }
+    }
+
+    private fun buildEngineRequest(): LocationEngineRequest {
+        return LocationEngineRequest.Builder(Utils.UPDATE_INTERVAL_IN_MILLISECONDS)
+            .setPriority(LocationEngineRequest.PRIORITY_HIGH_ACCURACY)
+            .setFastestInterval(Utils.FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS)
+            .build()
+    }
+
+    @SuppressLint("MissingPermission")
+    fun initMapBoxLocation() {
+        val request = buildEngineRequest()
+        locationEngine = LocationEngineProvider.getBestLocationEngine(getApplication())
+        locationUpdateFromEngine = LocationUpdateFromEngine(location)
+        locationEngine.requestLocationUpdates(request, locationUpdateFromEngine, null)
+    }
+
+    fun removeLocation() {
+        locationEngine.removeLocationUpdates(locationUpdateFromEngine)
     }
 
     private fun writeToFileInitially(file: File) {

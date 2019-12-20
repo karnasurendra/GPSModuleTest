@@ -249,6 +249,11 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         // This is make screen awake
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
+        // Mapbox Location will observe Here
+        mainViewModel.location.observe(this, androidx.lifecycle.Observer {
+            onLocationUpdate(it)
+        })
+
         checkPermissions()
 
         // Updating the distance in TV
@@ -258,6 +263,79 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
     }
 
+    private fun onLocationUpdate(location: Location) {
+
+        /*XLog.i(
+            "${Utils.LOCATION_UPDATED_DATA} :: Time : ${location.time}, Latitude : " +
+                    "${location.latitude}, Longitude : ${location.longitude}, Altitude : ${location.altitude}"
+        )*/
+
+        if (location.accuracy > 10) return
+
+        val xLong: Double = location.longitude
+        val yLat: Double = location.latitude
+        val speed: Double = location.speed.toDouble()
+        //Bearing is the horizontal direction of travel of this device, and is not related to the device orientation.
+        //It is guaranteed to be in the range (0.0, 360.0] if the device has a bearing.
+        //If this location does not have a bearing then 0.0 is returned.
+        val course: Double = location.bearing.toDouble()
+        val xVel: Double = speed * cos(course)
+        val yVel: Double = speed * sin(course)
+        val accuracy: Double = location.accuracy.toDouble()
+
+
+        /*XLog.d(
+            "Location and Accuracy Latitude : ${location.latitude}, Longitude : ${location.longitude}, " +
+                    "Accuracy : ${location.accuracy.toDouble()}, Provider : ${location.provider}"
+        )*/
+
+        val timeStamp: Long =
+            Utils.nano2milli(
+                location.elapsedRealtimeNanos
+            )
+        //WARNING!!! here should be speed accuracy, but loc.hasSpeedAccuracy()
+        // and loc.getSpeedAccuracyMetersPerSecond() requares API 26
+        val velError = location.accuracy * 0.1
+
+        updateMagneticDeclination(location, timeStamp)
+
+        // Only once it has to initialize, It will initialize from DI it will not be null
+        if (mainViewModel.gpsAccKalmanFilterNew.isInitializedFromDI()) {
+            mainViewModel.gpsAccKalmanFilterNew.manualInit(
+                false, // As per the reference project it is always false
+                CoordinatesNew.longitudeToMeters(xLong),
+                CoordinatesNew.latitudeToMeters(yLat),
+                xVel,
+                yVel,
+                Utils.ACCELEROMETER_DEFAULT_DEVIATION,
+                accuracy,
+                timeStamp.toDouble(),
+                Utils.DEFAULT_VEL_FACTOR,
+                Utils.DEFAULT_POS_FACTOR,
+                false
+            )
+            return
+        }
+
+        val sensorGpsDataItem =
+            SensorGpsDataItemNew(
+                timeStamp.toDouble(),
+                location.latitude,
+                location.longitude,
+                location.altitude,
+                SensorGpsDataItemNew.NOT_INITIALIZED,
+                SensorGpsDataItemNew.NOT_INITIALIZED,
+                SensorGpsDataItemNew.NOT_INITIALIZED,
+                location.speed.toDouble(),
+                location.bearing.toDouble(),
+                location.accuracy.toDouble(),
+                velError,
+                mMagneticDeclination
+            )
+
+        mSensorDataQueueNew.add(sensorGpsDataItem)
+
+    }
 
     private fun checkPermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -346,7 +424,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
     private fun init() {
         // Initialize location value
-        initiateLocation()
+//        initiateLocation()
+        // Location implementation done by using Map Box code implementation
+        mainViewModel.initMapBoxLocation()
         // Initializing the Sensors
         initializeSensors()
         mainViewModel.needTerminate = false
@@ -768,79 +848,10 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                 if (locationResult == null) return
                 for (location in locationResult.locations) {
                     if (location == null) return
-
                     // This is will tell whether the location is Fake location or original location, so if it is Fake location we need to return
                     if (location.isFromMockProvider) return
 
-                    /*XLog.i(
-                        "${Utils.LOCATION_UPDATED_DATA} :: Time : ${location.time}, Latitude : " +
-                                "${location.latitude}, Longitude : ${location.longitude}, Altitude : ${location.altitude}"
-                    )*/
-
-                    val xLong: Double = location.longitude
-                    val yLat: Double = location.latitude
-                    val speed: Double = location.speed.toDouble()
-                    //Bearing is the horizontal direction of travel of this device, and is not related to the device orientation.
-                    //It is guaranteed to be in the range (0.0, 360.0] if the device has a bearing.
-                    //If this location does not have a bearing then 0.0 is returned.
-                    val course: Double = location.bearing.toDouble()
-                    val xVel: Double = speed * cos(course)
-                    val yVel: Double = speed * sin(course)
-                    val accuracy: Double = location.accuracy.toDouble()
-
-
-                    Log.d("MainActivity::","Location and Accuracy Latitude : ${location.latitude}, Longitude : ${location.longitude}, " +
-                            "Accuracy : ${location.accuracy.toDouble()}, Provider : ${location.provider}")
-
-                    val timeStamp: Long =
-                        Utils.nano2milli(
-                            location.elapsedRealtimeNanos
-                        )
-                    //WARNING!!! here should be speed accuracy, but loc.hasSpeedAccuracy()
-                    // and loc.getSpeedAccuracyMetersPerSecond() requares API 26
-                    val velError = location.accuracy * 0.1
-
-                    updateMagneticDeclination(location, timeStamp)
-
-                    // Only once it has to initialize, It will initialize from DI it will not be null
-                    if (mainViewModel.gpsAccKalmanFilterNew.isInitializedFromDI()) {
-                        mainViewModel.gpsAccKalmanFilterNew.manualInit(
-                            false, // As per the reference project it is always false
-                            CoordinatesNew.longitudeToMeters(xLong),
-                            CoordinatesNew.latitudeToMeters(yLat),
-                            xVel,
-                            yVel,
-                            Utils.ACCELEROMETER_DEFAULT_DEVIATION,
-                            accuracy,
-                            timeStamp.toDouble(),
-                            Utils.DEFAULT_VEL_FACTOR,
-                            Utils.DEFAULT_POS_FACTOR,
-                            false
-                        )
-                        return
-                    }
-
-                    val sensorGpsDataItem =
-                        SensorGpsDataItemNew(
-                            timeStamp.toDouble(),
-                            location.latitude,
-                            location.longitude,
-                            location.altitude,
-                            SensorGpsDataItemNew.NOT_INITIALIZED,
-                            SensorGpsDataItemNew.NOT_INITIALIZED,
-                            SensorGpsDataItemNew.NOT_INITIALIZED,
-                            location.speed.toDouble(),
-                            location.bearing.toDouble(),
-                            location.accuracy.toDouble(),
-                            velError,
-                            mMagneticDeclination
-                        )
-
-                    mSensorDataQueueNew.add(sensorGpsDataItem)
-
-                    /*if (!mainViewModel.isTaskLooping) {
-                        mainViewModel.initSensorDataLoopTask(mSensorDataQueueNew)
-                    }*/
+                    onLocationUpdate(location)
                 }
             }
         }
@@ -865,10 +876,12 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     override fun onDestroy() {
         super.onDestroy()
         // Removing the Location updates once the activity is destroyed
-        mFusedLocationProviderClient.removeLocationUpdates(locationCallback)
+        // Below line has to uncomment when we use our own GPS Data
+//        mFusedLocationProviderClient.removeLocationUpdates(locationCallback)
         unRegisterSensors()
         // Stopping the filter
         mainViewModel.geohashRTFilter.stop()
+        mainViewModel.removeLocation()
 
     }
 

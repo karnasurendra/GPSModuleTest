@@ -7,6 +7,8 @@ import androidx.core.app.ActivityCompat
 open class Utils {
 
     companion object {
+        const val UPDATE_INTERVAL_IN_MILLISECONDS: Long = 1000
+        const val FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS: Long = 500
         const val LOCATION_FROM_FILTER = "Location Service"
         const val GEOHASH_DEFAULT_PREC = 6
 //        const val GEOHASH_DEFAULT_PREC = 7
