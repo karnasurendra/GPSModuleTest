@@ -1,11 +1,9 @@
 package com.apprikart.rotationmatrixdemo.loggers
 
 import android.location.Location
-import com.apprikart.rotationmatrixdemo.Utils
 import com.apprikart.rotationmatrixdemo.filters.CoordinatesNew
 import com.apprikart.rotationmatrixdemo.filters.GeoHashNew
 import com.apprikart.rotationmatrixdemo.filters.GeoPointNew
-import com.elvishew.xlog.XLog
 
 class GeohashRTFilter(private val geohashPrecision: Int, private val geohashminPointCount: Int) {
 

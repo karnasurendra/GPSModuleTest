@@ -12,12 +12,12 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import android.view.View
 import android.view.View.GONE
 import android.view.WindowManager
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.databinding.DataBindingUtil
@@ -29,12 +29,9 @@ import com.apprikart.rotationmatrixdemo.databinding.ActivityMainBinding
 import com.apprikart.rotationmatrixdemo.filters.CoordinatesNew
 import com.apprikart.rotationmatrixdemo.models.SensorGpsDataItemNew
 import com.apprikart.rotationmatrixdemo.viewmodels.MainViewModel
-import com.elvishew.xlog.XLog
-import com.google.android.gms.location.*
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
 import java.util.concurrent.PriorityBlockingQueue
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.math.cos
 import kotlin.math.sin
@@ -208,12 +205,11 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     private val invertedRotationMatrix = FloatArray(16)
     private val linAcceleration = FloatArray(4)
     private val accelerationVector = FloatArray(4)
-    private lateinit var mFusedLocationProviderClient: FusedLocationProviderClient
-    private lateinit var locationRequest: LocationRequest
-    private lateinit var locationCallback: LocationCallback
-    //This is the declination of the horizontal component of the magnetic field from true north, in degrees
-    // Ref link : https://www.youtube.com/watch?v=uN5w24F4hGk
-    // Magnetic declination can be calculated using Location latitude, longitude and Altitude
+    /**
+     *  This is the declination of the horizontal component of the magnetic field from true north, in degrees
+     *  Ref link : https://www.youtube.com/watch?v=uN5w24F4hGk
+     * Magnetic declination can be calculated using Location latitude, longitude and Altitude
+     */
     private var mMagneticDeclination: Double = 0.0
 
     // SensorDataItem will be added to this Queue
@@ -225,8 +221,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     private lateinit var mainViewModel: MainViewModel
     @Inject
     lateinit var mainViewModelFactory: MainViewModel.Companion.Factory
-    // Bug it is not taking from DI,it is individual to this class only
-//    private var gpsAccKalmanFilter: GPSAccKalmanFilter? = null
     private lateinit var mBinding: ActivityMainBinding
 
 
@@ -237,7 +231,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
         (application as SensorsApp).getComponent().inject(this)
 
-        // Initializing ViewModel with viewmodel factory
+        // Initializing ViewModel with view model factory
         mainViewModel =
             ViewModelProviders.of(this, mainViewModelFactory).get(MainViewModel::class.java)
 
@@ -245,18 +239,17 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 //        mBinding.lifecycleOwner = this
         mBinding.mainViewModel = mainViewModel
 
-
-        // This is make screen awake
+        // This will make screen awake
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
-        // Mapbox Location will observe Here
+        // Location values will observe Here
         mainViewModel.location.observe(this, androidx.lifecycle.Observer {
             onLocationUpdate(it)
         })
 
         checkPermissions()
 
-        // Updating the distance in TV
+        // Updating the distance in Text View
         mainViewModel.geoValues.observeForever {
             mBinding.distanceValuesTv.text = it
         }
@@ -270,14 +263,20 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                     "${location.latitude}, Longitude : ${location.longitude}, Altitude : ${location.altitude}"
         )*/
 
+        Toast.makeText(
+            this,
+            "Location Lat : ${location.latitude} Long : ${location.longitude}, Accuracy ${location.accuracy}",
+            Toast.LENGTH_SHORT
+        ).show()
+
         if (location.accuracy > 10) return
 
         val xLong: Double = location.longitude
         val yLat: Double = location.latitude
         val speed: Double = location.speed.toDouble()
-        //Bearing is the horizontal direction of travel of this device, and is not related to the device orientation.
-        //It is guaranteed to be in the range (0.0, 360.0] if the device has a bearing.
-        //If this location does not have a bearing then 0.0 is returned.
+        /**Bearing is the horizontal direction of travel of this device, and is not related to the device orientation.
+         *It is guaranteed to be in the range (0.0, 360.0] if the device has a bearing.
+         *If this location does not have a bearing then 0.0 is returned.*/
         val course: Double = location.bearing.toDouble()
         val xVel: Double = speed * cos(course)
         val yVel: Double = speed * sin(course)
@@ -293,8 +292,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             Utils.nano2milli(
                 location.elapsedRealtimeNanos
             )
-        //WARNING!!! here should be speed accuracy, but loc.hasSpeedAccuracy()
-        // and loc.getSpeedAccuracyMetersPerSecond() requares API 26
+        /**WARNING!!! here should be speed accuracy, but loc.hasSpeedAccuracy()
+         *and loc.getSpeedAccuracyMetersPerSecond() reqiares API 26*/
         val velError = location.accuracy * 0.1
 
         updateMagneticDeclination(location, timeStamp)
@@ -302,7 +301,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         // Only once it has to initialize, It will initialize from DI it will not be null
         if (mainViewModel.gpsAccKalmanFilterNew.isInitializedFromDI()) {
             mainViewModel.gpsAccKalmanFilterNew.manualInit(
-                false, // As per the reference project it is always false
+                false, // As per the reference project ( Mad-location-manager-master ) it is always false
                 CoordinatesNew.longitudeToMeters(xLong),
                 CoordinatesNew.latitudeToMeters(yLat),
                 xVel,
@@ -423,10 +422,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     }
 
     private fun init() {
-        // Initialize location value
-//        initiateLocation()
         // Location implementation done by using Map Box code implementation
-        mainViewModel.initMapBoxLocation()
+        mainViewModel.initLocation()
         // Initializing the Sensors
         initializeSensors()
         mainViewModel.needTerminate = false
@@ -833,34 +830,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         }
     }
 
-    // Location is initializing here
-    private fun initiateLocation() {
-        Log.d("Main::", "Checking Location Call back initiateLocation")
-        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
-        locationRequest = LocationRequest.create()
-        locationRequest.interval = TimeUnit.SECONDS.toMillis(30)
-        locationRequest.fastestInterval = TimeUnit.SECONDS.toMillis(10)
-        locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-        locationCallback = object : LocationCallback() {
-            override fun onLocationResult(locationResult: LocationResult?) {
-                super.onLocationResult(locationResult)
-
-                if (locationResult == null) return
-                for (location in locationResult.locations) {
-                    if (location == null) return
-                    // This is will tell whether the location is Fake location or original location, so if it is Fake location we need to return
-                    if (location.isFromMockProvider) return
-
-                    onLocationUpdate(location)
-                }
-            }
-        }
-
-        // Requesting the Location updates
-        mFusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, null)
-
-    }
-
     private fun updateMagneticDeclination(
         location: Location,
         timeStamp: Long
@@ -875,14 +844,10 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
     override fun onDestroy() {
         super.onDestroy()
-        // Removing the Location updates once the activity is destroyed
-        // Below line has to uncomment when we use our own GPS Data
-//        mFusedLocationProviderClient.removeLocationUpdates(locationCallback)
         unRegisterSensors()
         // Stopping the filter
         mainViewModel.geohashRTFilter.stop()
         mainViewModel.removeLocation()
-
     }
 
     private fun unRegisterSensors() {

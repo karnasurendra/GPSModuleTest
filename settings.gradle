@@ -1,2 +1,2 @@
-include ':app', ':mqtt', ':madlocationmanager'
+include ':app', ':mqtt'
 rootProject.name='RotationMatrixDemo'

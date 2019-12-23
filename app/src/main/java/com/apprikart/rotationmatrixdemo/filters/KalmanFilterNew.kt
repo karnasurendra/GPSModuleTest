@@ -58,7 +58,7 @@ class KalmanFilterNew(
             xkKm1.data[1][0]
         )
 
-        XLog.i(" ${Utils.KALMAN_FILTER_PREDICTED_STATE_LOCATION} \n Lat : ${geoPoint.Latitude} Long : ${geoPoint.Longitude}")
+//        XLog.i(" ${Utils.KALMAN_FILTER_PREDICTED_STATE_LOCATION} \n Lat : ${geoPoint.Latitude} Long : ${geoPoint.Longitude}")
 
         /*XLog.i(
             " ${Utils.KALMAN_FILTER_PREDICTED_ESTIMATE_COVARIANCE} \n [ " +
