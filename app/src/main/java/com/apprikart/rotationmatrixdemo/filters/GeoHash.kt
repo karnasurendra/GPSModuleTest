@@ -3,7 +3,7 @@ package com.apprikart.rotationmatrixdemo.filters
 /**
  * Created by lezh1k on 2/13/18.
  */
-object GeoHashNew {
+object GeoHash {
     private fun interleave(x: Long, y: Long): Long {
         var x = x
         var y = y

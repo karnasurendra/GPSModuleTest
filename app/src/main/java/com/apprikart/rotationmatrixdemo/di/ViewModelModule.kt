@@ -1,7 +1,7 @@
 package com.apprikart.rotationmatrixdemo.di
 
 import com.apprikart.rotationmatrixdemo.Utils
-import com.apprikart.rotationmatrixdemo.filters.GPSAccKalmanFilterNew
+import com.apprikart.rotationmatrixdemo.filters.GPSAccKalmanFilter
 import com.apprikart.rotationmatrixdemo.loggers.GeohashRTFilter
 import dagger.Module
 import dagger.Provides
@@ -14,8 +14,8 @@ class ViewModelModule {
 
     @Provides
     @Singleton
-    fun getGpsAccKalmanFilter(): GPSAccKalmanFilterNew {
-        return GPSAccKalmanFilterNew(true)
+    fun getGpsAccKalmanFilter(): GPSAccKalmanFilter {
+        return GPSAccKalmanFilter(true)
     }
 
     @Provides

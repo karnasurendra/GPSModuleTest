@@ -1,9 +1,9 @@
 package com.apprikart.rotationmatrixdemo.loggers
 
 import android.location.Location
-import com.apprikart.rotationmatrixdemo.filters.CoordinatesNew
-import com.apprikart.rotationmatrixdemo.filters.GeoHashNew
-import com.apprikart.rotationmatrixdemo.filters.GeoPointNew
+import com.apprikart.rotationmatrixdemo.filters.Coordinates
+import com.apprikart.rotationmatrixdemo.filters.GeoHash
+import com.apprikart.rotationmatrixdemo.models.GeoPoint
 
 class GeohashRTFilter(private val geohashPrecision: Int, private val geohashminPointCount: Int) {
 
@@ -14,9 +14,9 @@ class GeohashRTFilter(private val geohashPrecision: Int, private val geohashminP
     private var ppCompGeoHash = 0
     private var ppReadGeoHash = 1
     private var pointsInCurrentGeoHashCount = 0
-    private lateinit var currentGeoPointNew: GeoPointNew
-    private lateinit var lastApprovedGeoPointNew: GeoPointNew
-    private lateinit var lastGeoPointNewAsIs: GeoPointNew
+    private lateinit var currentGeoPoint: GeoPoint
+    private lateinit var lastApprovedGeoPoint: GeoPoint
+    private lateinit var lastGeoPointAsIs: GeoPoint
     private var mDistanceAsIs: Double = 0.0
     private var mDistanceAsIsHp: Double = 0.0
     private val hpResBuffAsIs = FloatArray(3)
@@ -33,9 +33,18 @@ class GeohashRTFilter(private val geohashPrecision: Int, private val geohashminP
         mGeoFilteredTrack.clear()
         geoHashBuffers = LongArray(2)
         pointsInCurrentGeoHashCount = 0
-        lastApprovedGeoPointNew = GeoPointNew(coOrdNotInitialized, coOrdNotInitialized)
-        currentGeoPointNew = GeoPointNew(coOrdNotInitialized, coOrdNotInitialized)
-        lastGeoPointNewAsIs = GeoPointNew(coOrdNotInitialized, coOrdNotInitialized)
+        lastApprovedGeoPoint = GeoPoint(
+            coOrdNotInitialized,
+            coOrdNotInitialized
+        )
+        currentGeoPoint = GeoPoint(
+            coOrdNotInitialized,
+            coOrdNotInitialized
+        )
+        lastGeoPointAsIs = GeoPoint(
+            coOrdNotInitialized,
+            coOrdNotInitialized
+        )
         distanceGeoFiltered = 0.0.also { distanceGeoFilteredHp = it }
         mDistanceAsIs = 0.0.also { mDistanceAsIsHp = it }
         isFirstCoordinate = true
@@ -46,82 +55,85 @@ class GeohashRTFilter(private val geohashPrecision: Int, private val geohashminP
 //        XLog.i("${Utils.GEOHASH_FILTERED_GPS_DATA} :: Time : ${loc.time}, Latitude : ${loc.latitude}, Longitude : ${loc.longitude}, Altitude : ${loc.altitude}")
 
 
-        val pi = GeoPointNew(loc.latitude, loc.longitude)
+        val pi = GeoPoint(
+            loc.latitude,
+            loc.longitude
+        )
 
         // First time we are updating the current Geo point and last Geo point with the first location values
         if (isFirstCoordinate) {
             geoHashBuffers[ppCompGeoHash] =
-                GeoHashNew.encodeU64(pi.latitude, pi.longitude, geohashPrecision)
-            currentGeoPointNew.latitude = pi.latitude
-            currentGeoPointNew.longitude = pi.longitude
+                GeoHash.encodeU64(pi.latitude, pi.longitude, geohashPrecision)
+            currentGeoPoint.latitude = pi.latitude
+            currentGeoPoint.longitude = pi.longitude
             pointsInCurrentGeoHashCount = 1
 
             isFirstCoordinate = false
-            lastGeoPointNewAsIs.latitude = pi.latitude
-            lastGeoPointNewAsIs.longitude = pi.longitude
+            lastGeoPointAsIs.latitude = pi.latitude
+            lastGeoPointAsIs.longitude = pi.longitude
             return
         }
 
-        mDistanceAsIs += CoordinatesNew.distanceBetween(
-            lastGeoPointNewAsIs.longitude,
-            lastGeoPointNewAsIs.latitude,
+        mDistanceAsIs += Coordinates.distanceBetween(
+            lastGeoPointAsIs.longitude,
+            lastGeoPointAsIs.latitude,
             pi.longitude,
             pi.latitude
         )
 
         Location.distanceBetween(
-            lastGeoPointNewAsIs.latitude,
-            lastGeoPointNewAsIs.longitude,
+            lastGeoPointAsIs.latitude,
+            lastGeoPointAsIs.longitude,
             pi.latitude,
             pi.longitude,
             hpResBuffAsIs
         )
 
         mDistanceAsIsHp += hpResBuffAsIs[0]
-        lastGeoPointNewAsIs.longitude = loc.longitude
-        lastGeoPointNewAsIs.latitude = loc.latitude
+        lastGeoPointAsIs.longitude = loc.longitude
+        lastGeoPointAsIs.latitude = loc.latitude
 
         geoHashBuffers[ppReadGeoHash] =
-            GeoHashNew.encodeU64(pi.latitude, pi.longitude, geohashPrecision)
+            GeoHash.encodeU64(pi.latitude, pi.longitude, geohashPrecision)
 
         if (geoHashBuffers[ppCompGeoHash] != geoHashBuffers[ppReadGeoHash]) {
 
             if (pointsInCurrentGeoHashCount >= geohashminPointCount) {
-                currentGeoPointNew.latitude /= pointsInCurrentGeoHashCount
-                currentGeoPointNew.longitude /= pointsInCurrentGeoHashCount
+                currentGeoPoint.latitude /= pointsInCurrentGeoHashCount
+                currentGeoPoint.longitude /= pointsInCurrentGeoHashCount
 
-                if (lastApprovedGeoPointNew.latitude != coOrdNotInitialized) {
-                    val dd1 = CoordinatesNew.distanceBetween(
-                        lastApprovedGeoPointNew.longitude,
-                        lastApprovedGeoPointNew.latitude,
-                        currentGeoPointNew.longitude,
-                        currentGeoPointNew.latitude
+                if (lastApprovedGeoPoint.latitude != coOrdNotInitialized) {
+                    val dd1 = Coordinates.distanceBetween(
+                        lastApprovedGeoPoint.longitude,
+                        lastApprovedGeoPoint.latitude,
+                        currentGeoPoint.longitude,
+                        currentGeoPoint.latitude
                     )
                     distanceGeoFiltered += dd1
                     Location.distanceBetween(
-                        lastApprovedGeoPointNew.latitude,
-                        lastApprovedGeoPointNew.longitude,
-                        currentGeoPointNew.latitude,
-                        currentGeoPointNew.longitude,
+                        lastApprovedGeoPoint.latitude,
+                        lastApprovedGeoPoint.longitude,
+                        currentGeoPoint.latitude,
+                        currentGeoPoint.longitude,
                         hpResBuffGeo
                     )
                     val dd2 = hpResBuffGeo[0]
                     distanceGeoFilteredHp += dd2
                 }
-                lastApprovedGeoPointNew.longitude = currentGeoPointNew.longitude
-                lastApprovedGeoPointNew.latitude = currentGeoPointNew.latitude
+                lastApprovedGeoPoint.longitude = currentGeoPoint.longitude
+                lastApprovedGeoPoint.latitude = currentGeoPoint.latitude
                 val laLoc = Location(providerName)
-                laLoc.latitude = lastApprovedGeoPointNew.latitude
-                laLoc.longitude = lastApprovedGeoPointNew.longitude
+                laLoc.latitude = lastApprovedGeoPoint.latitude
+                laLoc.longitude = lastApprovedGeoPoint.longitude
                 laLoc.altitude = loc.altitude
                 laLoc.time = loc.time
                 mGeoFilteredTrack.add(laLoc)
-                currentGeoPointNew.latitude = 0.0.also { currentGeoPointNew.longitude = it }
+                currentGeoPoint.latitude = 0.0.also { currentGeoPoint.longitude = it }
             }
 
             pointsInCurrentGeoHashCount = 1
-            currentGeoPointNew.latitude = pi.latitude
-            currentGeoPointNew.longitude = pi.longitude
+            currentGeoPoint.latitude = pi.latitude
+            currentGeoPoint.longitude = pi.longitude
             // Swap buffers
             val swp = ppCompGeoHash
             ppCompGeoHash = ppReadGeoHash
@@ -129,8 +141,8 @@ class GeohashRTFilter(private val geohashPrecision: Int, private val geohashminP
             return
         }
 
-        currentGeoPointNew.latitude += pi.latitude
-        currentGeoPointNew.longitude += pi.longitude
+        currentGeoPoint.latitude += pi.latitude
+        currentGeoPoint.longitude += pi.longitude
         ++pointsInCurrentGeoHashCount
     }
 
@@ -138,36 +150,36 @@ class GeohashRTFilter(private val geohashPrecision: Int, private val geohashminP
 
         if (pointsInCurrentGeoHashCount >= geohashminPointCount) {
 
-            currentGeoPointNew.latitude /= pointsInCurrentGeoHashCount
-            currentGeoPointNew.longitude /= pointsInCurrentGeoHashCount
+            currentGeoPoint.latitude /= pointsInCurrentGeoHashCount
+            currentGeoPoint.longitude /= pointsInCurrentGeoHashCount
 
-            if (lastApprovedGeoPointNew.latitude != coOrdNotInitialized) {
-                val dd1 = CoordinatesNew.distanceBetween(
-                    lastApprovedGeoPointNew.longitude,
-                    lastApprovedGeoPointNew.latitude,
-                    currentGeoPointNew.longitude,
-                    currentGeoPointNew.latitude
+            if (lastApprovedGeoPoint.latitude != coOrdNotInitialized) {
+                val dd1 = Coordinates.distanceBetween(
+                    lastApprovedGeoPoint.longitude,
+                    lastApprovedGeoPoint.latitude,
+                    currentGeoPoint.longitude,
+                    currentGeoPoint.latitude
                 )
                 distanceGeoFiltered += dd1
                 Location.distanceBetween(
-                    lastApprovedGeoPointNew.latitude,
-                    lastApprovedGeoPointNew.longitude,
-                    currentGeoPointNew.latitude,
-                    currentGeoPointNew.longitude,
+                    lastApprovedGeoPoint.latitude,
+                    lastApprovedGeoPoint.longitude,
+                    currentGeoPoint.latitude,
+                    currentGeoPoint.longitude,
                     hpResBuffGeo
                 )
                 val dd2 = hpResBuffGeo[0]
                 distanceGeoFilteredHp += dd2
             }
 
-            lastApprovedGeoPointNew.longitude = currentGeoPointNew.longitude
-            lastApprovedGeoPointNew.latitude = currentGeoPointNew.latitude
+            lastApprovedGeoPoint.longitude = currentGeoPoint.longitude
+            lastApprovedGeoPoint.latitude = currentGeoPoint.latitude
 
             val loc = Location(providerName)
-            loc.latitude = lastApprovedGeoPointNew.latitude
-            loc.longitude = lastApprovedGeoPointNew.longitude
+            loc.latitude = lastApprovedGeoPoint.latitude
+            loc.longitude = lastApprovedGeoPoint.longitude
             mGeoFilteredTrack.add(loc)
-            currentGeoPointNew.latitude = 0.0.also { currentGeoPointNew.longitude = it }
+            currentGeoPoint.latitude = 0.0.also { currentGeoPoint.longitude = it }
 
         }
 

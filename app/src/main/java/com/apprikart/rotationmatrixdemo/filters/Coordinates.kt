@@ -1,12 +1,12 @@
 package com.apprikart.rotationmatrixdemo.filters
 
-import com.apprikart.rotationmatrixdemo.models.GeoPointNew
+import com.apprikart.rotationmatrixdemo.models.GeoPoint
 import kotlin.math.*
 
 /**
  * Created by lezh1k on 2/13/18.
  */
-object CoordinatesNew {
+object Coordinates {
 
 
     private const val EARTH_RADIUS = 6371.0 * 1000.0 // meters
@@ -36,8 +36,8 @@ object CoordinatesNew {
     fun metersToGeoPoint(
         lonMeters: Double,
         latMeters: Double
-    ): GeoPointNew {
-        val point = GeoPointNew(0.0, 0.0)
+    ): GeoPoint {
+        val point = GeoPoint(0.0, 0.0)
         val pointEast = pointPlusDistanceEast(point, lonMeters)
         return pointPlusDistanceNorth(pointEast, latMeters)
     }
@@ -48,14 +48,14 @@ object CoordinatesNew {
     }
 
     private fun getPointAhead(
-        pointNew: GeoPointNew,
+        point: GeoPoint,
         distance: Double,
         azimuthDegrees: Double
-    ): GeoPointNew {
+    ): GeoPoint {
         val radiusFraction = distance / EARTH_RADIUS
         val bearing = Math.toRadians(azimuthDegrees)
-        val lat1 = Math.toRadians(pointNew.Latitude)
-        val lng1 = Math.toRadians(pointNew.Longitude)
+        val lat1 = Math.toRadians(point.latitude)
+        val lng1 = Math.toRadians(point.longitude)
         val lat2Part1 =
             sin(lat1) * cos(radiusFraction)
         val lat2Part2 =
@@ -71,37 +71,37 @@ object CoordinatesNew {
             cos(radiusFraction) - sin(lat1) * sin(lat2)
         var lng2 = lng1 + atan2(lng2Part1, lng2Part2)
         lng2 = (lng2 + 3.0 * Math.PI) % (2.0 * Math.PI) - Math.PI
-        return GeoPointNew(
+        return GeoPoint(
             Math.toDegrees(
                 lat2
             ), Math.toDegrees(lng2)
         )
     }
 
-    private fun pointPlusDistanceEast(pointNew: GeoPointNew, distance: Double): GeoPointNew {
-        return getPointAhead(pointNew, distance, 90.0)
+    private fun pointPlusDistanceEast(point: GeoPoint, distance: Double): GeoPoint {
+        return getPointAhead(point, distance, 90.0)
     }
 
-    private fun pointPlusDistanceNorth(pointNew: GeoPointNew, distance: Double): GeoPointNew {
-        return getPointAhead(pointNew, distance, 0.0)
+    private fun pointPlusDistanceNorth(point: GeoPoint, distance: Double): GeoPoint {
+        return getPointAhead(point, distance, 0.0)
     }
 
-    fun calculateDistance(track: Array<GeoPointNew>?): Double {
+    fun calculateDistance(track: Array<GeoPoint>?): Double {
         var distance = 0.0
         var lastLon: Double
         var lastLat: Double
         //WARNING! I didn't find array.length type. Seems it's int, so we can use next comparison:
         if (track == null || track.size - 1 <= 0) //track.length == 0 || track.length == 1
             return 0.0
-        lastLon = track[0].Longitude
-        lastLat = track[0].Latitude
+        lastLon = track[0].longitude
+        lastLat = track[0].latitude
         for (i in 1 until track.size) {
             distance += distanceBetween(
                 lastLat, lastLon,
-                track[i].Latitude, track[i].Longitude
+                track[i].latitude, track[i].longitude
             )
-            lastLat = track[i].Latitude
-            lastLon = track[i].Longitude
+            lastLat = track[i].latitude
+            lastLon = track[i].longitude
         }
         return distance
     }

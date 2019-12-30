@@ -3,17 +3,16 @@ package com.apprikart.rotationmatrixdemo.viewmodels
 import android.annotation.SuppressLint
 import android.app.Application
 import android.location.Location
-import android.util.Log
 import androidx.lifecycle.*
 import com.apprikart.rotationmatrixdemo.Utils
-import com.apprikart.rotationmatrixdemo.filters.CoordinatesNew
-import com.apprikart.rotationmatrixdemo.filters.GPSAccKalmanFilterNew
+import com.apprikart.rotationmatrixdemo.filters.Coordinates
+import com.apprikart.rotationmatrixdemo.filters.GPSAccKalmanFilter
 import com.apprikart.rotationmatrixdemo.location.LocationEngine
 import com.apprikart.rotationmatrixdemo.location.LocationEngineProvider
 import com.apprikart.rotationmatrixdemo.location.LocationEngineRequest
 import com.apprikart.rotationmatrixdemo.location.LocationUpdateFromEngine
 import com.apprikart.rotationmatrixdemo.loggers.GeohashRTFilter
-import com.apprikart.rotationmatrixdemo.models.SensorGpsDataItemNew
+import com.apprikart.rotationmatrixdemo.models.SensorGpsDataItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -25,7 +24,7 @@ import kotlin.math.sqrt
 
 class MainViewModel(
     application: Application,
-    var gpsAccKalmanFilterNew: GPSAccKalmanFilterNew,
+    var gpsAccKalmanFilter: GPSAccKalmanFilter,
     var geohashRTFilter: GeohashRTFilter
 ) : AndroidViewModel(application) {
 
@@ -59,20 +58,20 @@ class MainViewModel(
         locationEngine.removeLocationUpdates(locationUpdateFromEngine)
     }
 
-    fun initSensorDataLoopTask(mSensorDataQueueNew: Queue<SensorGpsDataItemNew>) {
+    fun initSensorDataLoopTask(mSensorDataQueue: Queue<SensorGpsDataItem>) {
         viewModelScope.launch(Dispatchers.IO) {
             while (!needTerminate) {
                 delay(500)
-                var sdi: SensorGpsDataItemNew
+                var sdi: SensorGpsDataItem
                 var lastTimeStamp = 0.0
-                while (!mSensorDataQueueNew.isEmpty()) {
-                    sdi = mSensorDataQueueNew.poll()!!
+                while (!mSensorDataQueue.isEmpty()) {
+                    sdi = mSensorDataQueue.poll()!!
                     if (sdi.timestamp < lastTimeStamp) {
                         continue
                     }
                     lastTimeStamp = sdi.timestamp
                     // If Location is not triggered, it will be Not Initialized
-                    if (sdi.gpsLat == SensorGpsDataItemNew.NOT_INITIALIZED) {
+                    if (sdi.gpsLat == SensorGpsDataItem.NOT_INITIALIZED) {
                         handlePredict(sdi)
                     } else {
                         handleUpdate(sdi)
@@ -102,21 +101,21 @@ class MainViewModel(
 
     }
 
-    private fun locationAfterUpdateStep(sdi: SensorGpsDataItemNew): Location {
+    private fun locationAfterUpdateStep(sdi: SensorGpsDataItem): Location {
 
         val loc = Location(Utils.LOCATION_FROM_FILTER)
 
         // In Filter values to be in Meters, So by using the metersToGeoPoint getting the geo points i.e latitude and longitude
-        val geoPoint = CoordinatesNew.metersToGeoPoint(
-            gpsAccKalmanFilterNew.getCurrentX(),
-            gpsAccKalmanFilterNew.getCurrentY()
+        val geoPoint = Coordinates.metersToGeoPoint(
+            gpsAccKalmanFilter.getCurrentX(),
+            gpsAccKalmanFilter.getCurrentY()
         )
 
-        loc.latitude = geoPoint.Latitude
-        loc.longitude = geoPoint.Longitude
+        loc.latitude = geoPoint.latitude
+        loc.longitude = geoPoint.longitude
         loc.altitude = sdi.gpsAlt
-        val xVel = gpsAccKalmanFilterNew.getCurrentXVel()
-        val yVel = gpsAccKalmanFilterNew.getCurrentYVel()
+        val xVel = gpsAccKalmanFilter.getCurrentXVel()
+        val yVel = gpsAccKalmanFilter.getCurrentYVel()
 
         val speed =
             sqrt(xVel * xVel + yVel * yVel) //scalar speed without bearing Note : Scalar means one dimensional quantity
@@ -133,18 +132,18 @@ class MainViewModel(
 
     }
 
-    private fun handlePredict(sdi: SensorGpsDataItemNew) {
-        gpsAccKalmanFilterNew.predict(sdi.timestamp, sdi.absEastAcc, sdi.absNorthAcc)
+    private fun handlePredict(sdi: SensorGpsDataItem) {
+        gpsAccKalmanFilter.predict(sdi.timestamp, sdi.absEastAcc, sdi.absNorthAcc)
     }
 
-    private fun handleUpdate(sdi: SensorGpsDataItemNew) {
+    private fun handleUpdate(sdi: SensorGpsDataItem) {
         val xVel = sdi.speed * cos(sdi.course)
         val yVel = sdi.speed * sin(sdi.course)
 
-        gpsAccKalmanFilterNew.update(
+        gpsAccKalmanFilter.update(
             sdi.timestamp,
-            CoordinatesNew.longitudeToMeters(sdi.gpsLon),
-            CoordinatesNew.latitudeToMeters(sdi.gpsLat),
+            Coordinates.longitudeToMeters(sdi.gpsLon),
+            Coordinates.latitudeToMeters(sdi.gpsLat),
             xVel,
             yVel,
             sdi.posErr,
@@ -157,13 +156,13 @@ class MainViewModel(
         @Suppress("UNCHECKED_CAST")
         class Factory @Inject constructor(
             private var application: Application,
-            private var gpsAccKalmanFilterNew: GPSAccKalmanFilterNew,
+            private var gpsAccKalmanFilter: GPSAccKalmanFilter,
             private var geohashRTFilter: GeohashRTFilter
         ) :
             ViewModelProvider.Factory {
             override fun <T : ViewModel?> create(modelClass: Class<T>): T {
                 return if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
-                    MainViewModel(application, gpsAccKalmanFilterNew, geohashRTFilter) as T
+                    MainViewModel(application, gpsAccKalmanFilter, geohashRTFilter) as T
                 } else {
                     throw IllegalArgumentException("ViewModel not found")
                 }

@@ -26,9 +26,10 @@ import com.apprikart.rotationmatrixdemo.R
 import com.apprikart.rotationmatrixdemo.SensorsApp
 import com.apprikart.rotationmatrixdemo.Utils
 import com.apprikart.rotationmatrixdemo.databinding.ActivityMainBinding
-import com.apprikart.rotationmatrixdemo.filters.CoordinatesNew
-import com.apprikart.rotationmatrixdemo.models.SensorGpsDataItemNew
+import com.apprikart.rotationmatrixdemo.filters.Coordinates
+import com.apprikart.rotationmatrixdemo.models.SensorGpsDataItem
 import com.apprikart.rotationmatrixdemo.viewmodels.MainViewModel
+import com.elvishew.xlog.XLog
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
 import java.util.concurrent.PriorityBlockingQueue
@@ -121,29 +122,29 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                 rotation_matrix_z_val.text = accelerationVector[2].toString()
 
                 // It will initialize once the Location details get triggered
-                if (mainViewModel.gpsAccKalmanFilterNew.isInitializedFromDI()) {
+                if (mainViewModel.gpsAccKalmanFilter.isInitializedFromDI()) {
                     return
                 }
 
                 // Creating the SensorDataItem object and Location values not available here so which are the fields are not available made them as Not Initialized
                 val sensorGpsDataItem =
-                    SensorGpsDataItemNew(
+                    SensorGpsDataItem(
                         nowMs.toDouble(),
-                        SensorGpsDataItemNew.NOT_INITIALIZED,
-                        SensorGpsDataItemNew.NOT_INITIALIZED,
-                        SensorGpsDataItemNew.NOT_INITIALIZED,
+                        SensorGpsDataItem.NOT_INITIALIZED,
+                        SensorGpsDataItem.NOT_INITIALIZED,
+                        SensorGpsDataItem.NOT_INITIALIZED,
                         accelerationVector[north].toDouble(),
                         accelerationVector[east].toDouble(),
                         accelerationVector[up].toDouble(),
-                        SensorGpsDataItemNew.NOT_INITIALIZED,
-                        SensorGpsDataItemNew.NOT_INITIALIZED,
-                        SensorGpsDataItemNew.NOT_INITIALIZED,
-                        SensorGpsDataItemNew.NOT_INITIALIZED,
+                        SensorGpsDataItem.NOT_INITIALIZED,
+                        SensorGpsDataItem.NOT_INITIALIZED,
+                        SensorGpsDataItem.NOT_INITIALIZED,
+                        SensorGpsDataItem.NOT_INITIALIZED,
                         mMagneticDeclination
                     )
 
                 // Adding the sensor data item object to Queue
-                mSensorDataQueueNew.add(sensorGpsDataItem)
+                mSensorDataQueue.add(sensorGpsDataItem)
 
                 // We are checking whether the parallel thread is running or not, if it is not running we are starting again
                 /*if (!mainViewModel.isTaskLooping) {
@@ -213,7 +214,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     private var mMagneticDeclination: Double = 0.0
 
     // SensorDataItem will be added to this Queue
-    private val mSensorDataQueueNew: Queue<SensorGpsDataItemNew> =
+    private val mSensorDataQueue: Queue<SensorGpsDataItem> =
         PriorityBlockingQueue()
     private val permissionReqCode = 100
     private val frequencyArrays = arrayOf("Normal", "Game", "UI", "Fast")
@@ -263,13 +264,13 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                     "${location.latitude}, Longitude : ${location.longitude}, Altitude : ${location.altitude}"
         )*/
 
-        Toast.makeText(
+        /*Toast.makeText(
             this,
             "Location Lat : ${location.latitude} Long : ${location.longitude}, Accuracy ${location.accuracy}",
             Toast.LENGTH_SHORT
-        ).show()
+        ).show()*/
 
-        if (location.accuracy > 10) return
+        if (location.accuracy > 15) return
 
         val xLong: Double = location.longitude
         val yLat: Double = location.latitude
@@ -283,10 +284,10 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         val accuracy: Double = location.accuracy.toDouble()
 
 
-        /*XLog.d(
+        XLog.d(
             "Location and Accuracy Latitude : ${location.latitude}, Longitude : ${location.longitude}, " +
                     "Accuracy : ${location.accuracy.toDouble()}, Provider : ${location.provider}"
-        )*/
+        )
 
         val timeStamp: Long =
             Utils.nano2milli(
@@ -299,11 +300,11 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         updateMagneticDeclination(location, timeStamp)
 
         // Only once it has to initialize, It will initialize from DI it will not be null
-        if (mainViewModel.gpsAccKalmanFilterNew.isInitializedFromDI()) {
-            mainViewModel.gpsAccKalmanFilterNew.manualInit(
+        if (mainViewModel.gpsAccKalmanFilter.isInitializedFromDI()) {
+            mainViewModel.gpsAccKalmanFilter.manualInit(
                 false, // As per the reference project ( Mad-location-manager-master ) it is always false
-                CoordinatesNew.longitudeToMeters(xLong),
-                CoordinatesNew.latitudeToMeters(yLat),
+                Coordinates.longitudeToMeters(xLong),
+                Coordinates.latitudeToMeters(yLat),
                 xVel,
                 yVel,
                 Utils.ACCELEROMETER_DEFAULT_DEVIATION,
@@ -317,14 +318,14 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         }
 
         val sensorGpsDataItem =
-            SensorGpsDataItemNew(
+            SensorGpsDataItem(
                 timeStamp.toDouble(),
                 location.latitude,
                 location.longitude,
                 location.altitude,
-                SensorGpsDataItemNew.NOT_INITIALIZED,
-                SensorGpsDataItemNew.NOT_INITIALIZED,
-                SensorGpsDataItemNew.NOT_INITIALIZED,
+                SensorGpsDataItem.NOT_INITIALIZED,
+                SensorGpsDataItem.NOT_INITIALIZED,
+                SensorGpsDataItem.NOT_INITIALIZED,
                 location.speed.toDouble(),
                 location.bearing.toDouble(),
                 location.accuracy.toDouble(),
@@ -332,7 +333,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                 mMagneticDeclination
             )
 
-        mSensorDataQueueNew.add(sensorGpsDataItem)
+        mSensorDataQueue.add(sensorGpsDataItem)
 
     }
 
@@ -428,7 +429,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         initializeSensors()
         mainViewModel.needTerminate = false
         // Starting the background task
-        mainViewModel.initSensorDataLoopTask(mSensorDataQueueNew)
+        mainViewModel.initSensorDataLoopTask(mSensorDataQueue)
     }
 
     private fun initializeSensors() {
