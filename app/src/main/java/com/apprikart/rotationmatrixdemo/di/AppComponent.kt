@@ -8,7 +8,7 @@ import javax.inject.Singleton
 @Component(modules = [AppModule::class, ViewModelModule::class])
 interface AppComponent {
 
-    // Where ever we are injecting the Dependancy those classes has to include here like activities, fragments
+    // Where ever we are injecting the Dependency those classes has to include here like activities, fragments
     fun inject(mainActivity: MainActivity)
 
 

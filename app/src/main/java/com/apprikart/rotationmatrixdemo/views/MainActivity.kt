@@ -12,6 +12,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import android.view.View
 import android.view.View.GONE
 import android.view.WindowManager
@@ -259,17 +260,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
     private fun onLocationUpdate(location: Location) {
 
-        /*XLog.i(
-            "${Utils.LOCATION_UPDATED_DATA} :: Time : ${location.time}, Latitude : " +
-                    "${location.latitude}, Longitude : ${location.longitude}, Altitude : ${location.altitude}"
-        )*/
-
-        /*Toast.makeText(
-            this,
-            "Location Lat : ${location.latitude} Long : ${location.longitude}, Accuracy ${location.accuracy}",
-            Toast.LENGTH_SHORT
-        ).show()*/
-
         if (location.accuracy > 15) return
 
         val xLong: Double = location.longitude
@@ -285,8 +275,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
 
         XLog.d(
-            "Location and Accuracy Latitude : ${location.latitude}, Longitude : ${location.longitude}, " +
-                    "Accuracy : ${location.accuracy.toDouble()}, Provider : ${location.provider}"
+            "Location Data Latitude : ${location.latitude}, Longitude : ${location.longitude}, " +
+                    "Speed : ${location.speed} Altitude : ${location.altitude} Time : ${location.time} Accuracy : ${location.accuracy}"
         )
 
         val timeStamp: Long =
