@@ -23,12 +23,12 @@ open class Utils {
         const val ACCELEROMETER_DEFAULT_DEVIATION = 0.1
         const val DEFAULT_VEL_FACTOR = 1.0
         const val DEFAULT_POS_FACTOR = 1.0
-        const val ACCELERATION = "Accelerometer"
+        const val ACCELEROMETER = "Accelerometer"
         const val GYROSCOPE = "Gyroscope"
         const val MAGNETOMETER = "Magnetometer"
-        const val LINEAR_ACCELERATION = "Linear Acceleration"
-        const val ROTATION_VECTOR = "Rotation Vector"
-        const val ROTATION_MATRIX = "Rotation Matrix"
+        const val LINEAR_ACCELERATION = "Linear_Acceleration"
+        const val ROTATION_VECTOR = "Rotation_Vector"
+        const val ROTATION_MATRIX = "Rotation_Matrix"
         const val INVERSE_ROTATION_MATRIX = "Inverse Rotation Matrix"
         const val ACCELERATION_IN_ABSOLUTE_COORDINATE_SYSTEM =
             "Acceleration vector in absolute coordinate system"

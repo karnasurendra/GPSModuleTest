@@ -2,7 +2,6 @@ package com.apprikart.rotationmatrixdemo.location
 
 import android.location.Location
 import androidx.lifecycle.MutableLiveData
-import com.elvishew.xlog.XLog
 import java.lang.Exception
 
 class LocationUpdateFromEngine(private val location: MutableLiveData<Location>) :
@@ -12,6 +11,5 @@ class LocationUpdateFromEngine(private val location: MutableLiveData<Location>) 
     }
 
     override fun onFailure(exception: Exception) {
-        XLog.d("Location Failure Exception ${exception.message}")
     }
 }

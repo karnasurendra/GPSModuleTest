@@ -18,7 +18,6 @@ import android.view.View.GONE
 import android.view.WindowManager
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.databinding.DataBindingUtil
@@ -30,8 +29,10 @@ import com.apprikart.rotationmatrixdemo.databinding.ActivityMainBinding
 import com.apprikart.rotationmatrixdemo.filters.Coordinates
 import com.apprikart.rotationmatrixdemo.models.SensorGpsDataItem
 import com.apprikart.rotationmatrixdemo.viewmodels.MainViewModel
-import com.elvishew.xlog.XLog
 import kotlinx.android.synthetic.main.activity_main.*
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 import java.util.*
 import java.util.concurrent.PriorityBlockingQueue
 import javax.inject.Inject
@@ -64,6 +65,12 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                         2 -> mBinding.accZVal.text = event.values[i].toString()
                     }
                 }
+                writeDataToFile(
+                    Utils.ACCELEROMETER,
+                    event.values[0],
+                    event.values[1],
+                    event.values[2]
+                )
             }
             Sensor.TYPE_GYROSCOPE -> {
                 for (i in event.values.indices) {
@@ -73,6 +80,12 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                         2 -> mBinding.gyroZVal.text = event.values[i].toString()
                     }
                 }
+                writeDataToFile(
+                    Utils.GYROSCOPE,
+                    event.values[0],
+                    event.values[1],
+                    event.values[2]
+                )
             }
             Sensor.TYPE_MAGNETIC_FIELD -> {
                 for (i in event.values.indices) {
@@ -82,6 +95,12 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                         2 -> mBinding.magZVal.text = event.values[i].toString()
                     }
                 }
+                writeDataToFile(
+                    Utils.MAGNETOMETER,
+                    event.values[0],
+                    event.values[1],
+                    event.values[2]
+                )
             }
             Sensor.TYPE_LINEAR_ACCELERATION -> {
                 for (i in event.values.indices) {
@@ -92,18 +111,15 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                     }
                 }
 
+                writeDataToFile(
+                    Utils.LINEAR_ACCELERATION,
+                    event.values[0],
+                    event.values[1],
+                    event.values[2]
+                )
+
                 // Converting the event values to an Array
                 System.arraycopy(event.values, 0, linAcceleration, 0, event.values.size)
-
-//                XLog.i("${Utils.LINEAR_ACCELERATION} - \n [ ${linAcceleration[0]} \n ${linAcceleration[1]} \n ${linAcceleration[2]} \n ${linAcceleration[3]} ]")
-
-                /*XLog.i(
-                    "${Utils.INVERSE_ROTATION_MATRIX} From Linear Acceleration - \n [" +
-                            "${invertedRotationMatrix[0]} ${invertedRotationMatrix[1]} ${invertedRotationMatrix[2]} ${invertedRotationMatrix[3]} \n" +
-                            "${invertedRotationMatrix[4]} ${invertedRotationMatrix[5]} ${invertedRotationMatrix[6]} ${invertedRotationMatrix[7]} \n" +
-                            "${invertedRotationMatrix[8]} ${invertedRotationMatrix[9]} ${invertedRotationMatrix[10]} ${invertedRotationMatrix[11]} \n" +
-                            "${invertedRotationMatrix[12]} ${invertedRotationMatrix[13]} ${invertedRotationMatrix[14]} ${invertedRotationMatrix[15]}  ]"
-                )*/
 
                 // Multiplying the inverted Rotation Matrix values with the linear acceleration sensor values
                 android.opengl.Matrix.multiplyMV(
@@ -114,8 +130,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                     linAcceleration,
                     0
                 )
-
-//                XLog.i("${Utils.ACCELERATION_IN_ABSOLUTE_COORDINATE_SYSTEM} - \n [ ${accelerationVector[0]} \n ${accelerationVector[1]} \n ${accelerationVector[2]} \n ${accelerationVector[3]} ]")
 
                 // acceleration vector in the “absolute” coordinate system
                 rotation_matrix_x_val.text = accelerationVector[0].toString()
@@ -147,11 +161,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                 // Adding the sensor data item object to Queue
                 mSensorDataQueue.add(sensorGpsDataItem)
 
-                // We are checking whether the parallel thread is running or not, if it is not running we are starting again
-                /*if (!mainViewModel.isTaskLooping) {
-                    mainViewModel.initSensorDataLoopTask(mSensorDataQueueNew)
-                }*/
-
             }
 
             Sensor.TYPE_ROTATION_VECTOR -> {
@@ -163,42 +172,32 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                     }
                 }
 
-                /*XLog.i(
-                    "${Utils.ROTATION_VECTOR} - \n [" +
-                            "${event.values[0]} \n ${event.values[1]} \n ${event.values[2]} \n ${event.values[3]} \n ]"
-                )*/
-
+                writeDataToFile(
+                    Utils.ROTATION_VECTOR,
+                    event.values[0],
+                    event.values[1],
+                    event.values[2]
+                )
 
                 // Getting Rotation Matrix values from Rotation Vector Component, which is 16 size array in Matrix form 4 x 4 matrix
                 // one dimensions for each axis x, y, and z, plus one dimension to represent the “origin” in the coordinate system. These are known as homogenous coordinates
                 SensorManager.getRotationMatrixFromVector(mRotationMatrix, event.values)
 
-
-                /*XLog.d(
-                    "${Utils.ROTATION_MATRIX} - \n [" +
-                            "${mRotationMatrix[0]} ${mRotationMatrix[1]} ${mRotationMatrix[2]} ${mRotationMatrix[3]} \n" +
-                            "${mRotationMatrix[4]} ${mRotationMatrix[5]} ${mRotationMatrix[6]} ${mRotationMatrix[7]} \n" +
-                            "${mRotationMatrix[8]} ${mRotationMatrix[9]} ${mRotationMatrix[10]} ${mRotationMatrix[11]} \n" +
-                            "${mRotationMatrix[12]} ${mRotationMatrix[13]} ${mRotationMatrix[14]} ${mRotationMatrix[15]}  ]"
-                )*/
-
                 // Inverting the 4 x 4 Rotation Matrix Values and saving to invertedRotationMatrix
                 android.opengl.Matrix.invertM(invertedRotationMatrix, 0, mRotationMatrix, 0)
-
-                /*XLog.d(
-                    "${Utils.INVERSE_ROTATION_MATRIX} From Rotation Vector - \n [" +
-                            "${invertedRotationMatrix[0]} ${invertedRotationMatrix[1]} ${invertedRotationMatrix[2]} ${invertedRotationMatrix[3]} \n" +
-                            "${invertedRotationMatrix[4]} ${invertedRotationMatrix[5]} ${invertedRotationMatrix[6]} ${invertedRotationMatrix[7]} \n" +
-                            "${invertedRotationMatrix[8]} ${invertedRotationMatrix[9]} ${invertedRotationMatrix[10]} ${invertedRotationMatrix[11]} \n" +
-                            "${invertedRotationMatrix[12]} ${invertedRotationMatrix[13]} ${invertedRotationMatrix[14]} ${invertedRotationMatrix[15]}  ]"
-                )*/
             }
         }
     }
 
+    private lateinit var csvFile: File
+    private lateinit var accFile: File
+    private lateinit var gyroFile: File
+    private lateinit var magFile: File
+    private lateinit var linAccFile: File
+    private lateinit var rotVecFile: File
     private var permissions = arrayOf(
-//        Manifest.permission.WRITE_EXTERNAL_STORAGE,
-//        Manifest.permission.READ_EXTERNAL_STORAGE,
+        Manifest.permission.WRITE_EXTERNAL_STORAGE,
+        Manifest.permission.READ_EXTERNAL_STORAGE,
         Manifest.permission.ACCESS_FINE_LOCATION,
         Manifest.permission.ACCESS_COARSE_LOCATION
     )
@@ -256,6 +255,69 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             mBinding.distanceValuesTv.text = it
         }
 
+
+    }
+
+    private fun createDirAndFile() {
+        val path = getExternalFilesDir(null)
+        val andLoc = path.toString().indexOf("Android")
+        val filtered = path.toString().substring(0 until andLoc)
+        val file = File(filtered, "GPS")
+        if (!file.exists()) {
+            file.mkdir()
+        }
+        csvFile = File(file, "sensors_data.csv")
+        accFile = File(file, "acc_data.csv")
+        gyroFile = File(file, "gyro_data.csv")
+        magFile = File(file, "mag_data.csv")
+        linAccFile = File(file, "linAcc_data.csv")
+        rotVecFile = File(file, "rotVec_data.csv")
+        if (!csvFile.exists()) {
+            csvFile.createNewFile()
+        }
+        if (!accFile.exists()) {
+            accFile.createNewFile()
+        }
+        if (!gyroFile.exists()) {
+            gyroFile.createNewFile()
+        }
+        if (!magFile.exists()) {
+            magFile.createNewFile()
+        }
+        if (!linAccFile.exists()) {
+            linAccFile.createNewFile()
+        }
+        if (!rotVecFile.exists()) {
+            rotVecFile.createNewFile()
+        }
+    }
+
+    private fun writeDataToFile(sensorName: String, x: Float, y: Float, z: Float) {
+        val data = "$sensorName,${x},${y},${z}\n"
+        try {
+            val fof = FileOutputStream(csvFile, true)
+            fof.write(data.toByteArray())
+            fof.close()
+
+            /*If we want to write each individual data into Data we have to Use*/
+/*
+            val individualFile = when (sensorName) {
+                Utils.ACCELEROMETER -> FileOutputStream(accFile, true)
+                Utils.GYROSCOPE -> FileOutputStream(gyroFile, true)
+                Utils.MAGNETOMETER -> FileOutputStream(magFile, true)
+                Utils.LINEAR_ACCELERATION -> FileOutputStream(linAccFile, true)
+                Utils.ROTATION_VECTOR -> FileOutputStream(rotVecFile, true)
+                else -> FileOutputStream(accFile, true)
+            }
+
+            individualFile.write(data.toByteArray())
+            individualFile.close()
+*/
+
+        } catch (e: IOException) {
+            Log.d("Main::", "Writing to File Failed ${e.message}")
+        }
+
     }
 
     private fun onLocationUpdate(location: Location) {
@@ -272,12 +334,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         val xVel: Double = speed * cos(course)
         val yVel: Double = speed * sin(course)
         val accuracy: Double = location.accuracy.toDouble()
-
-
-        XLog.d(
-            "Location Data Latitude : ${location.latitude}, Longitude : ${location.longitude}, " +
-                    "Speed : ${location.speed} Altitude : ${location.altitude} Time : ${location.time} Accuracy : ${location.accuracy}"
-        )
 
         val timeStamp: Long =
             Utils.nano2milli(
@@ -413,6 +469,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     }
 
     private fun init() {
+        createDirAndFile()
         // Location implementation done by using Map Box code implementation
         mainViewModel.initLocation()
         // Initializing the Sensors
