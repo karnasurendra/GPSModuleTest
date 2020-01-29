@@ -262,34 +262,42 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         val path = getExternalFilesDir(null)
         val andLoc = path.toString().indexOf("Android")
         val filtered = path.toString().substring(0 until andLoc)
-        val file = File(filtered, "GPS")
+        val file: File
+        file = if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
+            File(filtered, "GPS")
+        } else {
+            File(path, "GPS")
+
+        }
         if (!file.exists()) {
             file.mkdir()
         }
         csvFile = File(file, "sensors_data.csv")
-        accFile = File(file, "acc_data.csv")
-        gyroFile = File(file, "gyro_data.csv")
-        magFile = File(file, "mag_data.csv")
-        linAccFile = File(file, "linAcc_data.csv")
-        rotVecFile = File(file, "rotVec_data.csv")
+
         if (!csvFile.exists()) {
             csvFile.createNewFile()
         }
-        if (!accFile.exists()) {
-            accFile.createNewFile()
-        }
-        if (!gyroFile.exists()) {
-            gyroFile.createNewFile()
-        }
-        if (!magFile.exists()) {
-            magFile.createNewFile()
-        }
-        if (!linAccFile.exists()) {
-            linAccFile.createNewFile()
-        }
-        if (!rotVecFile.exists()) {
-            rotVecFile.createNewFile()
-        }
+        /*We are writing to one File only so commented*/
+        //        accFile = File(file, "acc_data.csv")
+//        gyroFile = File(file, "gyro_data.csv")
+//        magFile = File(file, "mag_data.csv")
+//        linAccFile = File(file, "linAcc_data.csv")
+//        rotVecFile = File(file, "rotVec_data.csv")
+        /*  if (!accFile.exists()) {
+              accFile.createNewFile()
+          }
+          if (!gyroFile.exists()) {
+              gyroFile.createNewFile()
+          }
+          if (!magFile.exists()) {
+              magFile.createNewFile()
+          }
+          if (!linAccFile.exists()) {
+              linAccFile.createNewFile()
+          }
+          if (!rotVecFile.exists()) {
+              rotVecFile.createNewFile()
+          }*/
     }
 
     private fun writeDataToFile(sensorName: String, x: Float, y: Float, z: Float) {
