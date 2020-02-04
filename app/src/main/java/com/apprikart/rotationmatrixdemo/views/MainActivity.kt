@@ -1,38 +1,18 @@
 package com.apprikart.rotationmatrixdemo.views
 
 import android.Manifest
-import android.app.AlertDialog
 import android.content.Context
-import android.content.DialogInterface
-import android.content.Intent
-import android.content.pm.PackageManager
 import android.hardware.*
 import android.location.Location
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
-import android.util.Log
-import android.view.View
-import android.view.View.GONE
-import android.view.WindowManager
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProviders
-import com.apprikart.rotationmatrixdemo.R
 import com.apprikart.rotationmatrixdemo.SensorsApp
 import com.apprikart.rotationmatrixdemo.Utils
-import com.apprikart.rotationmatrixdemo.databinding.ActivityMainBinding
 import com.apprikart.rotationmatrixdemo.filters.Coordinates
 import com.apprikart.rotationmatrixdemo.models.SensorGpsDataItem
 import com.apprikart.rotationmatrixdemo.viewmodels.MainViewModel
-import kotlinx.android.synthetic.main.activity_main.*
-import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
 import java.util.*
 import java.util.concurrent.PriorityBlockingQueue
 import javax.inject.Inject
@@ -57,71 +37,12 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             Utils.nano2milli(now)
 
         when (event.sensor.type) {
-            Sensor.TYPE_ACCELEROMETER -> {
-                for (i in event.values.indices) {
-                    when (i) {
-                        0 -> mBinding.accXVal.text = event.values[i].toString()
-                        1 -> mBinding.accYVal.text = event.values[i].toString()
-                        2 -> mBinding.accZVal.text = event.values[i].toString()
-                    }
-                }
-                writeDataToFile(
-                    Utils.ACCELEROMETER,
-                    event.values[0],
-                    event.values[1],
-                    event.values[2]
-                )
-            }
-            Sensor.TYPE_GYROSCOPE -> {
-                for (i in event.values.indices) {
-                    when (i) {
-                        0 -> mBinding.gyroXVal.text = event.values[i].toString()
-                        1 -> mBinding.gyroYVal.text = event.values[i].toString()
-                        2 -> mBinding.gyroZVal.text = event.values[i].toString()
-                    }
-                }
-                writeDataToFile(
-                    Utils.GYROSCOPE,
-                    event.values[0],
-                    event.values[1],
-                    event.values[2]
-                )
-            }
-            Sensor.TYPE_MAGNETIC_FIELD -> {
-                for (i in event.values.indices) {
-                    when (i) {
-                        0 -> mBinding.magXVal.text = event.values[i].toString()
-                        1 -> mBinding.magYVal.text = event.values[i].toString()
-                        2 -> mBinding.magZVal.text = event.values[i].toString()
-                    }
-                }
-                writeDataToFile(
-                    Utils.MAGNETOMETER,
-                    event.values[0],
-                    event.values[1],
-                    event.values[2]
-                )
-            }
             Sensor.TYPE_LINEAR_ACCELERATION -> {
-                for (i in event.values.indices) {
-                    when (i) {
-                        0 -> mBinding.linearXVal.text = event.values[i].toString()
-                        1 -> mBinding.linearYVal.text = event.values[i].toString()
-                        2 -> mBinding.linearZVal.text = event.values[i].toString()
-                    }
-                }
-
-                writeDataToFile(
-                    Utils.LINEAR_ACCELERATION,
-                    event.values[0],
-                    event.values[1],
-                    event.values[2]
-                )
-
-                // Converting the event values to an Array
+                // Converting the Linear Acceleration values to an Array
                 System.arraycopy(event.values, 0, linAcceleration, 0, event.values.size)
-
-                // Multiplying the inverted Rotation Matrix values with the linear acceleration sensor values
+                /**Multiplying the inverted Rotation Matrix values with the linear acceleration sensor values
+                Getting acceleration vector in the “absolute” coordinate system from invertedRotationMatrix and Linear Acceleration values
+                 */
                 android.opengl.Matrix.multiplyMV(
                     accelerationVector,
                     0,
@@ -130,11 +51,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                     linAcceleration,
                     0
                 )
-
-                // acceleration vector in the “absolute” coordinate system
-                rotation_matrix_x_val.text = accelerationVector[0].toString()
-                rotation_matrix_y_val.text = accelerationVector[1].toString()
-                rotation_matrix_z_val.text = accelerationVector[2].toString()
 
                 // It will initialize once the Location details get triggered
                 if (mainViewModel.gpsAccKalmanFilter.isInitializedFromDI()) {
@@ -164,23 +80,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             }
 
             Sensor.TYPE_ROTATION_VECTOR -> {
-                for (i in event.values.indices) {
-                    when (i) {
-                        0 -> mBinding.rotationVectorXVal.text = event.values[i].toString()
-                        1 -> mBinding.rotationVectorYVal.text = event.values[i].toString()
-                        2 -> mBinding.rotationVectorZVal.text = event.values[i].toString()
-                    }
-                }
-
-                writeDataToFile(
-                    Utils.ROTATION_VECTOR,
-                    event.values[0],
-                    event.values[1],
-                    event.values[2]
-                )
-
-                // Getting Rotation Matrix values from Rotation Vector Component, which is 16 size array in Matrix form 4 x 4 matrix
-                // one dimensions for each axis x, y, and z, plus one dimension to represent the “origin” in the coordinate system. These are known as homogenous coordinates
+                /** Getting Rotation Matrix values from Rotation Vector Component, which is 16 size array in Matrix form 4 x 4 matrix
+                one dimensions for each axis x, y, and z, plus one dimension to represent the “origin” in the coordinate system. These are known as homogeneous coordinates*/
                 SensorManager.getRotationMatrixFromVector(mRotationMatrix, event.values)
 
                 // Inverting the 4 x 4 Rotation Matrix Values and saving to invertedRotationMatrix
@@ -189,15 +90,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         }
     }
 
-    private lateinit var csvFile: File
-    private lateinit var accFile: File
-    private lateinit var gyroFile: File
-    private lateinit var magFile: File
-    private lateinit var linAccFile: File
-    private lateinit var rotVecFile: File
     private var permissions = arrayOf(
-        Manifest.permission.WRITE_EXTERNAL_STORAGE,
-        Manifest.permission.READ_EXTERNAL_STORAGE,
         Manifest.permission.ACCESS_FINE_LOCATION,
         Manifest.permission.ACCESS_COARSE_LOCATION
     )
@@ -216,19 +109,13 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     // SensorDataItem will be added to this Queue
     private val mSensorDataQueue: Queue<SensorGpsDataItem> =
         PriorityBlockingQueue()
-    private val permissionReqCode = 100
-    private val frequencyArrays = arrayOf("Normal", "Game", "UI", "Fast")
-    private var isSensorAvailability = false
     private lateinit var mainViewModel: MainViewModel
     @Inject
     lateinit var mainViewModelFactory: MainViewModel.Companion.Factory
-    private lateinit var mBinding: ActivityMainBinding
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-//        setContentView(R.layout.activity_main)
-        mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
 
         (application as SensorsApp).getComponent().inject(this)
 
@@ -236,95 +123,19 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         mainViewModel =
             ViewModelProviders.of(this, mainViewModelFactory).get(MainViewModel::class.java)
 
-        // Mandatory to link between the ViewModel and XML
-//        mBinding.lifecycleOwner = this
-        mBinding.mainViewModel = mainViewModel
-
-        // This will make screen awake
-        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-
         // Location values will observe Here
         mainViewModel.location.observe(this, androidx.lifecycle.Observer {
             onLocationUpdate(it)
         })
 
+        /*Starting Point*/
         checkPermissions()
 
-        // Updating the distance in Text View
+        // Updating the distance in Text View - Optional
         mainViewModel.geoValues.observeForever {
-            mBinding.distanceValuesTv.text = it
+            //            mBinding.distanceValuesTv.text = it
         }
 
-
-    }
-
-    private fun createDirAndFile() {
-        val path = getExternalFilesDir(null)
-        val andLoc = path.toString().indexOf("Android")
-        val filtered = path.toString().substring(0 until andLoc)
-        val file: File
-        file = if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
-            File(filtered, "GPS")
-        } else {
-            File(path, "GPS")
-
-        }
-        if (!file.exists()) {
-            file.mkdir()
-        }
-        csvFile = File(file, "sensors_data.csv")
-
-        if (!csvFile.exists()) {
-            csvFile.createNewFile()
-        }
-        /*We are writing to one File only so commented*/
-        //        accFile = File(file, "acc_data.csv")
-//        gyroFile = File(file, "gyro_data.csv")
-//        magFile = File(file, "mag_data.csv")
-//        linAccFile = File(file, "linAcc_data.csv")
-//        rotVecFile = File(file, "rotVec_data.csv")
-        /*  if (!accFile.exists()) {
-              accFile.createNewFile()
-          }
-          if (!gyroFile.exists()) {
-              gyroFile.createNewFile()
-          }
-          if (!magFile.exists()) {
-              magFile.createNewFile()
-          }
-          if (!linAccFile.exists()) {
-              linAccFile.createNewFile()
-          }
-          if (!rotVecFile.exists()) {
-              rotVecFile.createNewFile()
-          }*/
-    }
-
-    private fun writeDataToFile(sensorName: String, x: Float, y: Float, z: Float) {
-        val data = "$sensorName,${x},${y},${z}\n"
-        try {
-            val fof = FileOutputStream(csvFile, true)
-            fof.write(data.toByteArray())
-            fof.close()
-
-            /*If we want to write each individual data into Data we have to Use*/
-/*
-            val individualFile = when (sensorName) {
-                Utils.ACCELEROMETER -> FileOutputStream(accFile, true)
-                Utils.GYROSCOPE -> FileOutputStream(gyroFile, true)
-                Utils.MAGNETOMETER -> FileOutputStream(magFile, true)
-                Utils.LINEAR_ACCELERATION -> FileOutputStream(linAccFile, true)
-                Utils.ROTATION_VECTOR -> FileOutputStream(rotVecFile, true)
-                else -> FileOutputStream(accFile, true)
-            }
-
-            individualFile.write(data.toByteArray())
-            individualFile.close()
-*/
-
-        } catch (e: IOException) {
-            Log.d("Main::", "Writing to File Failed ${e.message}")
-        }
 
     }
 
@@ -348,7 +159,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                 location.elapsedRealtimeNanos
             )
         /**WARNING!!! here should be speed accuracy, but loc.hasSpeedAccuracy()
-         *and loc.getSpeedAccuracyMetersPerSecond() reqiares API 26*/
+         *and loc.getSpeedAccuracyMetersPerSecond() requires API 26*/
         val velError = location.accuracy * 0.1
 
         updateMagneticDeclination(location, timeStamp)
@@ -400,85 +211,19 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             ) {
                 init()
             } else {
-                ActivityCompat.requestPermissions(this, permissions, permissionReqCode)
+                // Callback required to Application
+//                ActivityCompat.requestPermissions(this, permissions, permissionReqCode)
             }
         } else {
             init()
         }
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-
-        if (requestCode == permissionReqCode) {
-            for (permission in permissions) {
-                if (ActivityCompat.shouldShowRequestPermissionRationale(this, permission)) {
-                    //denied
-                    val alertDialogBuilder = AlertDialog.Builder(this)
-                    alertDialogBuilder.setMessage("Please provide permissions to continue ?")
-                        .setCancelable(false)
-                        .setPositiveButton(R.string.yes) { dialogInterface: DialogInterface, _: Int ->
-                            dialogInterface.dismiss()
-                            checkPermissions()
-                        }
-                        .setNegativeButton(R.string.no) { dialogInterface: DialogInterface, _: Int ->
-                            dialogInterface.dismiss()
-                            finish()
-                        }
-
-                    val alertDialog = alertDialogBuilder.create()
-                    alertDialog.show()
-                    break
-                } else {
-                    if (ActivityCompat.checkSelfPermission(
-                            this,
-                            permission
-                        ) == PackageManager.PERMISSION_GRANTED
-                    ) {
-                        // All permissions allowed
-                        if (permission == permissions[permissions.size - 1]) {
-                            if (Utils.hasPermissions(
-                                    this,
-                                    this.permissions
-                                )
-                            ) {
-                                init()
-                            }
-                        }
-                    } else {
-                        //set to never ask again
-                        val alertDialogBuilder = AlertDialog.Builder(this)
-                        alertDialogBuilder.setMessage("App requires permissions to continue. Allow permissions through settings.")
-                            .setCancelable(false)
-                            .setPositiveButton(R.string.ok) { dialogInterface: DialogInterface, _: Int ->
-                                dialogInterface.dismiss()
-                                openAppSettings()
-                            }
-                        val alertDialog = alertDialogBuilder.create()
-                        alertDialog.show()
-                        break
-                    }
-                }
-            }
-        }
-    }
-
-    private fun openAppSettings() {
-        val packageUri: Uri = Uri.fromParts("package", application.packageName, null)
-        val applicationIntent = Intent()
-        applicationIntent.action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
-        applicationIntent.data = packageUri
-        applicationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        startActivity(applicationIntent)
-    }
 
     private fun init() {
-        createDirAndFile()
-        // Location implementation done by using Map Box code implementation
+        /*Below method is to create directory and file in the Storage*/
+//        createDirAndFile()
+        // Location implementation done by using reference of Map Box code
         mainViewModel.initLocation()
         // Initializing the Sensors
         initializeSensors()
@@ -490,401 +235,34 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     private fun initializeSensors() {
         // Initializing System Service
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-
-        // Checking for Accelerometer and registering
-        registerAccelerometer()
-
-        // Checking for Gyroscope and registering
-        registerGyroscope()
-
-        // Checking for Magnetometer and registering
-        registerMagnetometer()
-
         // Checking for Linear Acceleration and registering
-        registerLinearAcceleration()
-
+        registerLANew()
         // Checking for Rotation Vector and registering
-        registerRotationVector()
-
-
+        registerRotationVectorNew()
     }
 
-
-    private fun registerRotationVector() {
-        if (sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR) != null) {
-            isSensorAvailability = true
-            sensorManager.registerListener(
-                this,
-                sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR),
-                SensorManager.SENSOR_DELAY_NORMAL
-            )
-            val arrayAdapter =
-                ArrayAdapter<String>(
-                    this,
-                    R.layout.support_simple_spinner_dropdown_item,
-                    frequencyArrays
-                )
-            rotation_vec_spinner.adapter = arrayAdapter
-            rotation_vec_spinner.onItemSelectedListener =
-                object : AdapterView.OnItemSelectedListener {
-                    override fun onNothingSelected(p0: AdapterView<*>?) {
-
-                    }
-
-                    override fun onItemSelected(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
-
-                        if (p0 != null) {
-                            // First we need to unregister, to change the frequency
-                            if (sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR) != null) {
-                                sensorManager.unregisterListener(
-                                    this@MainActivity,
-                                    sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
-                                )
-                            }
-
-                            when (p0.getItemAtPosition(p2).toString()) {
-                                resources.getString(R.string.frequency_normal) -> {
-                                    sensorManager.registerListener(
-                                        this@MainActivity,
-                                        sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR),
-                                        SensorManager.SENSOR_DELAY_NORMAL
-                                    )
-                                }
-                                resources.getString(R.string.frequency_game) -> {
-                                    sensorManager.registerListener(
-                                        this@MainActivity,
-                                        sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR),
-                                        SensorManager.SENSOR_DELAY_GAME
-                                    )
-                                }
-                                resources.getString(R.string.frequency_ui) -> {
-                                    sensorManager.registerListener(
-                                        this@MainActivity,
-                                        sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR),
-                                        SensorManager.SENSOR_DELAY_UI
-                                    )
-                                }
-                                resources.getString(R.string.frequency_fast) -> {
-                                    sensorManager.registerListener(
-                                        this@MainActivity,
-                                        sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR),
-                                        SensorManager.SENSOR_DELAY_FASTEST
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-        } else {
-            val rotVecNa = resources.getString(R.string.rotation_vector_header) + " - NA"
-            rotation_matrix_header.text = rotVecNa
-            rotation_vec_spinner.visibility = GONE
-            rotation_vector_x_val.text = resources.getString(R.string.na)
-            rotation_vector_y_val.text = resources.getString(R.string.na)
-            rotation_vector_z_val.text = resources.getString(R.string.na)
-        }
+    private fun isAllSensorsAvailale(): Boolean {
+        return (sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION) != null && sensorManager.getDefaultSensor(
+            Sensor.TYPE_ROTATION_VECTOR
+        ) != null)
     }
 
-    private fun registerLinearAcceleration() {
-        if (sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION) != null) {
-            isSensorAvailability = true
-            sensorManager.registerListener(
-                this,
-                sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION),
-                SensorManager.SENSOR_DELAY_NORMAL
-            )
-
-            val arrayAdapter =
-                ArrayAdapter<String>(
-                    this,
-                    R.layout.support_simple_spinner_dropdown_item,
-                    frequencyArrays
-                )
-            linear_acc_spinner.adapter = arrayAdapter
-            linear_acc_spinner.onItemSelectedListener =
-                object : AdapterView.OnItemSelectedListener {
-                    override fun onNothingSelected(p0: AdapterView<*>?) {
-
-                    }
-
-                    override fun onItemSelected(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
-
-                        if (p0 != null) {
-
-                            if (sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION) != null) {
-                                sensorManager.unregisterListener(
-                                    this@MainActivity,
-                                    sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION)
-                                )
-                            }
-
-                            when (p0.getItemAtPosition(p2).toString()) {
-                                resources.getString(R.string.frequency_normal) -> {
-                                    sensorManager.registerListener(
-                                        this@MainActivity,
-                                        sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION),
-                                        SensorManager.SENSOR_DELAY_NORMAL
-                                    )
-                                }
-                                resources.getString(R.string.frequency_game) -> {
-                                    sensorManager.registerListener(
-                                        this@MainActivity,
-                                        sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION),
-                                        SensorManager.SENSOR_DELAY_GAME
-                                    )
-                                }
-                                resources.getString(R.string.frequency_ui) -> {
-                                    sensorManager.registerListener(
-                                        this@MainActivity,
-                                        sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION),
-                                        SensorManager.SENSOR_DELAY_UI
-                                    )
-                                }
-                                resources.getString(R.string.frequency_fast) -> {
-                                    sensorManager.registerListener(
-                                        this@MainActivity,
-                                        sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION),
-                                        SensorManager.SENSOR_DELAY_FASTEST
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-        } else {
-            val linAccNa = resources.getString(R.string.linear_acceleration) + " - NA"
-            linear_acc_header.text = linAccNa
-            linear_acc_spinner.visibility = GONE
-            linear_x_val.text = resources.getString(R.string.na)
-            linear_y_val.text = resources.getString(R.string.na)
-            linear_z_val.text = resources.getString(R.string.na)
-        }
+    private fun registerLANew() {
+        sensorManager.registerListener(
+            this,
+            sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION),
+            SensorManager.SENSOR_DELAY_NORMAL
+        )
     }
 
-    private fun registerMagnetometer() {
-        if (sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD) != null) {
-            isSensorAvailability = true
-            sensorManager.registerListener(
-                this,
-                sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
-                SensorManager.SENSOR_DELAY_NORMAL
-            )
-
-            val arrayAdapter =
-                ArrayAdapter<String>(
-                    this,
-                    R.layout.support_simple_spinner_dropdown_item,
-                    frequencyArrays
-                )
-            mag_spinner.adapter = arrayAdapter
-            mag_spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                override fun onNothingSelected(p0: AdapterView<*>?) {
-
-                }
-
-                override fun onItemSelected(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
-
-                    if (p0 != null) {
-
-                        if (sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD) != null) {
-                            sensorManager.unregisterListener(
-                                this@MainActivity,
-                                sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
-                            )
-                        }
-
-                        when (p0.getItemAtPosition(p2).toString()) {
-                            resources.getString(R.string.frequency_normal) -> {
-                                sensorManager.registerListener(
-                                    this@MainActivity,
-                                    sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
-                                    SensorManager.SENSOR_DELAY_NORMAL
-                                )
-                            }
-                            resources.getString(R.string.frequency_game) -> {
-                                sensorManager.registerListener(
-                                    this@MainActivity,
-                                    sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
-                                    SensorManager.SENSOR_DELAY_GAME
-                                )
-                            }
-                            resources.getString(R.string.frequency_ui) -> {
-                                sensorManager.registerListener(
-                                    this@MainActivity,
-                                    sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
-                                    SensorManager.SENSOR_DELAY_UI
-                                )
-                            }
-                            resources.getString(R.string.frequency_fast) -> {
-                                sensorManager.registerListener(
-                                    this@MainActivity,
-                                    sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
-                                    SensorManager.SENSOR_DELAY_FASTEST
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        } else {
-            val magNa = resources.getString(R.string.magnetometer) + " - NA"
-            mag_header.text = magNa
-            mag_spinner.visibility = GONE
-            mag_x_val.text = resources.getString(R.string.na)
-            mag_y_val.text = resources.getString(R.string.na)
-            mag_z_val.text = resources.getString(R.string.na)
-        }
+    private fun registerRotationVectorNew() {
+        sensorManager.registerListener(
+            this,
+            sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR),
+            SensorManager.SENSOR_DELAY_NORMAL
+        )
     }
 
-    private fun registerGyroscope() {
-        if (sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE) != null) {
-            isSensorAvailability = true
-            sensorManager.registerListener(
-                this,
-                sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE),
-                SensorManager.SENSOR_DELAY_NORMAL
-            )
-            val arrayAdapter =
-                ArrayAdapter<String>(
-                    this,
-                    R.layout.support_simple_spinner_dropdown_item,
-                    frequencyArrays
-                )
-            gyro_spinner.adapter = arrayAdapter
-            gyro_spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                override fun onNothingSelected(p0: AdapterView<*>?) {
-
-                }
-
-                override fun onItemSelected(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
-
-                    if (p0 != null) {
-
-                        if (sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE) != null) {
-                            sensorManager.unregisterListener(
-                                this@MainActivity,
-                                sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
-                            )
-                        }
-
-                        when (p0.getItemAtPosition(p2).toString()) {
-                            resources.getString(R.string.frequency_normal) -> {
-                                sensorManager.registerListener(
-                                    this@MainActivity,
-                                    sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE),
-                                    SensorManager.SENSOR_DELAY_NORMAL
-                                )
-                            }
-                            resources.getString(R.string.frequency_game) -> {
-                                sensorManager.registerListener(
-                                    this@MainActivity,
-                                    sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE),
-                                    SensorManager.SENSOR_DELAY_GAME
-                                )
-                            }
-                            resources.getString(R.string.frequency_ui) -> {
-                                sensorManager.registerListener(
-                                    this@MainActivity,
-                                    sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE),
-                                    SensorManager.SENSOR_DELAY_UI
-                                )
-                            }
-                            resources.getString(R.string.frequency_fast) -> {
-                                sensorManager.registerListener(
-                                    this@MainActivity,
-                                    sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE),
-                                    SensorManager.SENSOR_DELAY_FASTEST
-                                )
-                            }
-                        }
-                    }
-
-                }
-            }
-        } else {
-            val gyroNa = resources.getString(R.string.gyroscope) + " - NA"
-            gyro_header.text = gyroNa
-            gyro_spinner.visibility = GONE
-            gyro_x_val.text = resources.getString(R.string.na)
-            gyro_y_val.text = resources.getString(R.string.na)
-            gyro_z_val.text = resources.getString(R.string.na)
-        }
-    }
-
-    private fun registerAccelerometer() {
-        if (sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null) {
-            isSensorAvailability = true
-            sensorManager.registerListener(
-                this,
-                sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-                SensorManager.SENSOR_DELAY_NORMAL
-            )
-            val arrayAdapter =
-                ArrayAdapter<String>(
-                    this,
-                    R.layout.support_simple_spinner_dropdown_item,
-                    frequencyArrays
-                )
-            acc_spinner.adapter = arrayAdapter
-            acc_spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                override fun onNothingSelected(p0: AdapterView<*>?) {
-
-                }
-
-                override fun onItemSelected(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
-
-                    if (p0 != null) {
-
-                        if (sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null) {
-                            sensorManager.unregisterListener(
-                                this@MainActivity,
-                                sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-                            )
-                        }
-
-                        when (p0.getItemAtPosition(p2).toString()) {
-                            resources.getString(R.string.frequency_normal) -> {
-                                sensorManager.registerListener(
-                                    this@MainActivity,
-                                    sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-                                    SensorManager.SENSOR_DELAY_NORMAL
-                                )
-                            }
-                            resources.getString(R.string.frequency_game) -> {
-                                sensorManager.registerListener(
-                                    this@MainActivity,
-                                    sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-                                    SensorManager.SENSOR_DELAY_GAME
-                                )
-                            }
-                            resources.getString(R.string.frequency_ui) -> {
-                                sensorManager.registerListener(
-                                    this@MainActivity,
-                                    sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-                                    SensorManager.SENSOR_DELAY_UI
-                                )
-                            }
-                            resources.getString(R.string.frequency_fast) -> {
-                                sensorManager.registerListener(
-                                    this@MainActivity,
-                                    sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-                                    SensorManager.SENSOR_DELAY_FASTEST
-                                )
-                            }
-                        }
-                    }
-
-                }
-            }
-        } else {
-            val accNa = resources.getString(R.string.acceleration) + " - NA"
-            acc_header.text = accNa
-            acc_spinner.visibility = GONE
-            acc_x_val.text = resources.getString(R.string.na)
-            acc_y_val.text = resources.getString(R.string.na)
-            acc_z_val.text = resources.getString(R.string.na)
-        }
-    }
 
     private fun updateMagneticDeclination(
         location: Location,
@@ -898,45 +276,28 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         mMagneticDeclination = geomagneticField.declination.toDouble()
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun onPause() {
+        super.onPause()
         unRegisterSensors()
         // Stopping the filter
         mainViewModel.geohashRTFilter.stop()
         mainViewModel.removeLocation()
     }
 
+    override fun onRestart() {
+        super.onRestart()
+        init()
+    }
+
     private fun unRegisterSensors() {
-        if (sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null) {
-            sensorManager.unregisterListener(
-                this,
-                sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-            )
-        }
-        if (sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE) != null) {
-            sensorManager.unregisterListener(
-                this,
-                sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
-            )
-        }
-        if (sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD) != null) {
-            sensorManager.unregisterListener(
-                this,
-                sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
-            )
-        }
-        if (sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION) != null) {
-            sensorManager.unregisterListener(
-                this,
-                sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION)
-            )
-        }
-        if (sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR) != null) {
-            sensorManager.unregisterListener(
-                this,
-                sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
-            )
-        }
+        sensorManager.unregisterListener(
+            this,
+            sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION)
+        )
+        sensorManager.unregisterListener(
+            this,
+            sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
+        )
     }
 
 }

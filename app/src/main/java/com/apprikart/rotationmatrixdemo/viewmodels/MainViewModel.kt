@@ -42,7 +42,7 @@ class MainViewModel(
     }
 
     /**
-     * Location is implemented from Map box SDK, which is of Open Source
+     * Location is implemented from the reference of Map box SDK, which is of Open Source
      * <p>
      * (c) https://github.com/mapbox/mapbox-events-android/tree/master/liblocation/src/main/java/com/mapbox/android/core/location
      */
