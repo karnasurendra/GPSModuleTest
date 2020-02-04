@@ -29,7 +29,7 @@ class GeohashRTFilter(private val geohashPrecision: Int, private val geohashminP
         reset()
     }
 
-    private fun reset() {
+    fun reset() {
         mGeoFilteredTrack.clear()
         geoHashBuffers = LongArray(2)
         pointsInCurrentGeoHashCount = 0

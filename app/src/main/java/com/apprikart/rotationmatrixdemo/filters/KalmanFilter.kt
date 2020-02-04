@@ -37,6 +37,8 @@ class KalmanFilter(
     private var auxSDxSD: Matrix = Matrix(stateDimension, stateDimension)
     private var auxSDxMD: Matrix = Matrix(stateDimension, measureDimension)
 
+    /** Ref. Link : https://blog.maddevs.io/reduce-gps-data-error-on-android-with-kalman-filter-and-accelerometer-43594faed19c*/
+
     fun predict() {
         //Xk|k-1 = Fk*Xk-1|k-1 + Bk*Uk
         Matrix.matrixMultiply(f, xkK, xkKm1)

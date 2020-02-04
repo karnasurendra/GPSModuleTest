@@ -5,7 +5,6 @@ import android.content.Context
 import android.hardware.*
 import android.location.Location
 import android.os.Build
-import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProviders
 import com.apprikart.rotationmatrixdemo.SensorsApp
@@ -20,6 +19,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 class MainActivity : AppCompatActivity(), SensorEventListener {
+
 
     override fun onAccuracyChanged(p0: Sensor?, p1: Int) {
         //Nothing has to do
@@ -80,8 +80,10 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             }
 
             Sensor.TYPE_ROTATION_VECTOR -> {
-                /** Getting Rotation Matrix values from Rotation Vector Component, which is 16 size array in Matrix form 4 x 4 matrix
-                one dimensions for each axis x, y, and z, plus one dimension to represent the “origin” in the coordinate system. These are known as homogeneous coordinates*/
+                /** Getting Rotation Matrix values from Rotation Vector Component,
+                which is 16 size array in Matrix form 4 x 4 matrix
+                 *  one dimensions for each axis x, y, and z, plus one dimension to represent the
+                “origin” in the coordinate system. These are known as homogeneous coordinates*/
                 SensorManager.getRotationMatrixFromVector(mRotationMatrix, event.values)
 
                 // Inverting the 4 x 4 Rotation Matrix Values and saving to invertedRotationMatrix
@@ -99,6 +101,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     private val invertedRotationMatrix = FloatArray(16)
     private val linAcceleration = FloatArray(4)
     private val accelerationVector = FloatArray(4)
+    private lateinit var gpsCallbacks: GPSCallbacks
     /**
      *  This is the declination of the horizontal component of the magnetic field from true north, in degrees
      *  Ref link : https://www.youtube.com/watch?v=uN5w24F4hGk
@@ -113,12 +116,10 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     @Inject
     lateinit var mainViewModelFactory: MainViewModel.Companion.Factory
 
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
+    /** This is the method which will be connecting the Application and the Module
+     * */
+    fun startGps() {
         (application as SensorsApp).getComponent().inject(this)
-
         // Initializing ViewModel with view model factory
         mainViewModel =
             ViewModelProviders.of(this, mainViewModelFactory).get(MainViewModel::class.java)
@@ -129,14 +130,52 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         })
 
         /*Starting Point*/
-        checkPermissions()
+        if (isAllSensorsAvailable()) {
+            gpsCallbacks.sensorsAvailability(true)
+            checkPermissions()
+        } else {
+            gpsCallbacks.sensorsAvailability(false)
+            return
+        }
 
         // Updating the distance in Text View - Optional
         mainViewModel.geoValues.observeForever {
             //            mBinding.distanceValuesTv.text = it
         }
 
+    }
 
+    /**Disconnection Part
+     * Whenever want to stop the GPS Module, unregistering the Sensors, stopping the location filter and removing the Location updates
+     * This can be called when the app goes to onPause or onStop State*/
+    fun stopGps(){
+        unRegisterSensors()
+        // Stopping the filter
+        mainViewModel.geohashRTFilter.stop()
+        mainViewModel.removeLocation()
+    }
+
+    /**This method will be useful when the application comes to restart state*/
+    fun restartGps(){
+        initializeSensors()
+        mainViewModel.geohashRTFilter.reset()
+        mainViewModel.initLocation()
+    }
+
+    /**
+     * This is Method will be available to the Application for the interface implementation*/
+    fun setGpsCallbacks(gpsCallbacks: GPSCallbacks) {
+        this.gpsCallbacks = gpsCallbacks
+    }
+
+    /**
+     * These interface methods will be available to application
+     * sensorsAvailability() -> Will give the information regarding sensors availability in a device
+     * permissionIssue() -> Will call if permission is not available to the Application
+     * */
+    interface GPSCallbacks {
+        fun sensorsAvailability(sensorsAvailable: Boolean)
+        fun permissionIssue()
     }
 
     private fun onLocationUpdate(location: Location) {
@@ -211,8 +250,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             ) {
                 init()
             } else {
-                // Callback required to Application
-//                ActivityCompat.requestPermissions(this, permissions, permissionReqCode)
+                gpsCallbacks.permissionIssue()
             }
         } else {
             init()
@@ -235,19 +273,20 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     private fun initializeSensors() {
         // Initializing System Service
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        // Checking for Linear Acceleration and registering
-        registerLANew()
-        // Checking for Rotation Vector and registering
-        registerRotationVectorNew()
+        /**Registering the Linear Acceleration Sensor*/
+        registerLA()
+        /**Registering the Rotation Vector Sensor*/
+        registerRotationVector()
     }
 
-    private fun isAllSensorsAvailale(): Boolean {
+    private fun isAllSensorsAvailable(): Boolean {
         return (sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION) != null && sensorManager.getDefaultSensor(
             Sensor.TYPE_ROTATION_VECTOR
         ) != null)
     }
 
-    private fun registerLANew() {
+    /**Registering the LA(Linear Acceleration) Sensor*/
+    private fun registerLA() {
         sensorManager.registerListener(
             this,
             sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION),
@@ -255,7 +294,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         )
     }
 
-    private fun registerRotationVectorNew() {
+    /**Registering the Rotation Vector Sensor*/
+    private fun registerRotationVector() {
         sensorManager.registerListener(
             this,
             sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR),
@@ -264,6 +304,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     }
 
 
+    /**Getting the Magnetic declination value of the particular location*/
     private fun updateMagneticDeclination(
         location: Location,
         timeStamp: Long
@@ -274,19 +315,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                 location.longitude.toFloat(), location.altitude.toFloat(), timeStamp
             )
         mMagneticDeclination = geomagneticField.declination.toDouble()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        unRegisterSensors()
-        // Stopping the filter
-        mainViewModel.geohashRTFilter.stop()
-        mainViewModel.removeLocation()
-    }
-
-    override fun onRestart() {
-        super.onRestart()
-        init()
     }
 
     private fun unRegisterSensors() {
