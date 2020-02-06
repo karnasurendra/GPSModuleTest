@@ -52,9 +52,14 @@ class KalmanFilter(
         Matrix.matrixMultiplyByTranspose(auxSDxSD, f, pkKm1)
         Matrix.matrixAdd(pkKm1, q, pkKm1)
 
+        val geoPoint = Coordinates.metersToGeoPoint(
+            xkKm1.data[0][0],
+            xkKm1.data[1][0]
+        )
+
         Log.d(
             "KalmanFilter::",
-            "Values From Library GPS Prediction Long ${xkK.data[0][0]} Lat ${xkK.data[1][0]}"
+            "Values From Library GPS Prediction Long ${geoPoint.longitude} Lat ${geoPoint.latitude}"
         )
 
     }
@@ -83,9 +88,14 @@ class KalmanFilter(
         Matrix.matrixSubtractFromIdentity(auxSDxSD)
         Matrix.matrixMultiply(auxSDxSD, pkKm1, pkK)
 
+        val geoPoint = Coordinates.metersToGeoPoint(
+            xkKm1.data[0][0],
+            xkKm1.data[1][0]
+        )
+
         Log.d(
             "KalmanFilter::",
-            "Values From Library GPS Prediction Long ${xkK.data[0][0]} Lat ${xkK.data[1][0]}"
+            "Values From Library GPS Update Long ${geoPoint.longitude} Lat ${geoPoint.latitude}"
         )
 
         //we don't use this :

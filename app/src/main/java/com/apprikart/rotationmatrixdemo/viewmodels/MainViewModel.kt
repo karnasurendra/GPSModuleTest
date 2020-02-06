@@ -3,6 +3,7 @@ package com.apprikart.rotationmatrixdemo.viewmodels
 import android.annotation.SuppressLint
 import android.app.Application
 import android.location.Location
+import android.util.Log
 import androidx.lifecycle.*
 import com.apprikart.rotationmatrixdemo.Utils
 import com.apprikart.rotationmatrixdemo.filters.Coordinates
@@ -72,8 +73,16 @@ class MainViewModel(
                     lastTimeStamp = sdi.timestamp
                     // If Location is not triggered, it will be Not Initialized
                     if (sdi.gpsLat == SensorGpsDataItem.NOT_INITIALIZED) {
+                        Log.d(
+                            "KalmanFilter::",
+                            "Values From Library ViewModel GPS not Initialized"
+                        )
                         handlePredict(sdi)
                     } else {
+                        Log.d(
+                            "KalmanFilter::",
+                            "Values From Library ViewModel GPS Initialized"
+                        )
                         handleUpdate(sdi)
                         val location = locationAfterUpdateStep(sdi)
                         onLocationChangedImp(location)
@@ -85,6 +94,10 @@ class MainViewModel(
 
     private fun onLocationChangedImp(location: Location) {
 
+        Log.d(
+            "KalmanFilter::",
+            "Values From Library ViewModel GPS Initialized onLocationChangesImp"
+        )
         // Location provider will change in GeoHashRTFilter class
         if (location.latitude == 0.0 ||
             location.longitude == 0.0 ||
