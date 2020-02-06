@@ -6,7 +6,7 @@ import com.apprikart.rotationmatrixdemo.di.AppModule
 import com.apprikart.rotationmatrixdemo.di.DaggerAppComponent
 import com.apprikart.rotationmatrixdemo.di.ViewModelModule
 
-class SensorsApp : Application() {
+open class SensorsApp : Application() {
 
     private lateinit var appComponent: AppComponent
 
