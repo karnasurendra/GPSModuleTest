@@ -53,6 +53,9 @@ abstract class MainActivity : AppCompatActivity() {
         mainViewModel =
             ViewModelProviders.of(this, mainViewModelFactory).get(MainViewModel::class.java)
 
+        // Initializing System Service
+        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+
         // Location values will observe Here
         mainViewModel.location.observe(this, androidx.lifecycle.Observer {
             onLocationUpdate(it)
@@ -270,8 +273,7 @@ abstract class MainActivity : AppCompatActivity() {
     }
 
     private fun initializeSensors() {
-        // Initializing System Service
-        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+
         /**Registering the Linear Acceleration Sensor*/
         registerLA()
         /**Registering the Rotation Vector Sensor*/
