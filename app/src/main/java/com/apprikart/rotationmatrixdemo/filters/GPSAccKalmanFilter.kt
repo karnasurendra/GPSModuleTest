@@ -165,10 +165,12 @@ class GPSAccKalmanFilter(private var isFromDependency: Boolean) {
         kalmanFilter.f.setData(*f)
     }
 
+    /**It will provide the current Longitude*/
     fun getCurrentX(): Double {
         return kalmanFilter.xkK.data[0][0]
     }
 
+    /**It will provide the current Latitude*/
     fun getCurrentY(): Double {
         return kalmanFilter.xkK.data[1][0]
     }

@@ -1,5 +1,7 @@
 package com.apprikart.rotationmatrixdemo.filters
 
+import android.util.Log
+
 class KalmanFilter(
     stateDimension: Int,
     measureDimension: Int,
@@ -16,7 +18,7 @@ class KalmanFilter(
     /*these matrices will be updated by user*/
     var uk: Matrix = Matrix(controlDimension, 1)//control vector
     var zk: Matrix = Matrix(measureDimension, 1)//actual values (measured)
-//    var zk: MatrixNew = MatrixNew(stateDimension, 1)//actual values (measured)
+    //    var zk: MatrixNew = MatrixNew(stateDimension, 1)//actual values (measured)
     var xkKm1: Matrix = Matrix(stateDimension, 1)//predicted state estimate
     private var pkKm1: Matrix =
         Matrix(stateDimension, stateDimension)//predicted estimate covariance
@@ -49,6 +51,12 @@ class KalmanFilter(
         Matrix.matrixMultiply(f, pkK, auxSDxSD)
         Matrix.matrixMultiplyByTranspose(auxSDxSD, f, pkKm1)
         Matrix.matrixAdd(pkKm1, q, pkKm1)
+
+        Log.d(
+            "KalmanFilter::",
+            "Values From Library GPS Prediction Long ${xkK.data[0][0]} Lat ${xkK.data[1][0]}"
+        )
+
     }
 
     fun update() {
@@ -74,6 +82,11 @@ class KalmanFilter(
         Matrix.matrixMultiply(k, h, auxSDxSD)
         Matrix.matrixSubtractFromIdentity(auxSDxSD)
         Matrix.matrixMultiply(auxSDxSD, pkKm1, pkK)
+
+        Log.d(
+            "KalmanFilter::",
+            "Values From Library GPS Prediction Long ${xkK.data[0][0]} Lat ${xkK.data[1][0]}"
+        )
 
         //we don't use this :
         //Yk|k = Zk - Hk*Xk|k

@@ -5,9 +5,7 @@
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-
-    <!--If we want to publish our app into PlayStore we need below lines-->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" /> <!-- If we want to publish our app into PlayStore we need below lines -->
     <uses-feature
         android:name="android.hardware.Sensor.accelerometer"
         android:required="true" />
@@ -33,8 +31,8 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
-
-        <activity android:name=".views.MainActivity"
+        <activity
+            android:name=".views.MainActivity"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -42,15 +40,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <!--<service android:name="mad.location.manager.lib.services.KalmanLocationService"
+        <!--
+<service android:name="mad.location.manager.lib.services.KalmanLocationService"
             android:enabled="true"
             android:exported="false"
-            android:stopWithTask="false"/>-->
+            android:stopWithTask="false"/>
+        -->
         <meta-data
             android:name="com.google.android.gms.version"
-            android:value="@integer/google_play_services_version"/>
-
+            android:value="@integer/google_play_services_version" />
     </application>
 
 </manifest>
