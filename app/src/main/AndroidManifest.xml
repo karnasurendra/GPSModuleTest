@@ -5,16 +5,8 @@
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" /> <!-- If we want to publish our app into PlayStore we need below lines -->
-    <uses-feature
-        android:name="android.hardware.Sensor.accelerometer"
-        android:required="true" />
-    <uses-feature
-        android:name="android.hardware.Sensor.gyroscope"
-        android:required="true" />
-    <uses-feature
-        android:name="android.hardware.Sensor.magnetic_field"
-        android:required="true" />
+
+    <!--If we want to publish our application into PlayStore we need to provide the below lines-->
     <uses-feature
         android:name="android.hardware.Sensor.linear_acceleration"
         android:required="true" />
@@ -23,7 +15,7 @@
         android:required="true" />
 
     <application
-        android:name=".SensorsApp"
+        android:name=".GPSApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -31,24 +23,6 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
-        <activity
-            android:name=".views.MainActivity"
-            android:screenOrientation="portrait">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <!--
-<service android:name="mad.location.manager.lib.services.KalmanLocationService"
-            android:enabled="true"
-            android:exported="false"
-            android:stopWithTask="false"/>
-        -->
-        <meta-data
-            android:name="com.google.android.gms.version"
-            android:value="@integer/google_play_services_version" />
     </application>
 
 </manifest>

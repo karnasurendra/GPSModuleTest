@@ -1,6 +1,6 @@
 package com.apprikart.rotationmatrixdemo.di
 
-import com.apprikart.rotationmatrixdemo.views.MainActivity
+import com.apprikart.rotationmatrixdemo.views.GPSActivity
 import dagger.Component
 import javax.inject.Singleton
 
@@ -9,7 +9,7 @@ import javax.inject.Singleton
 interface AppComponent {
 
     // Where ever we are injecting the Dependency those classes has to include here like activities, fragments
-    fun inject(mainActivity: MainActivity)
+    fun inject(mainActivity: GPSActivity)
 
 
 }

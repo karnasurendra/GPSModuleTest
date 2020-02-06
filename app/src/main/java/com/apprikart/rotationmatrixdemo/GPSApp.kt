@@ -6,7 +6,7 @@ import com.apprikart.rotationmatrixdemo.di.AppModule
 import com.apprikart.rotationmatrixdemo.di.DaggerAppComponent
 import com.apprikart.rotationmatrixdemo.di.ViewModelModule
 
-open class SensorsApp : Application() {
+open class GPSApp : Application() {
 
     private lateinit var appComponent: AppComponent
 

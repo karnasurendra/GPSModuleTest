@@ -56,10 +56,15 @@ class KalmanFilter(
             xkKm1.data[0][0],
             xkKm1.data[1][0]
         )
+        val geoPointXkk = Coordinates.metersToGeoPoint(
+            xkK.data[0][0],
+            xkK.data[1][0]
+        )
 
         Log.d(
             "KalmanFilter::",
-            "Values From Library GPS Prediction Long ${geoPoint.longitude} Lat ${geoPoint.latitude}"
+            "Values From Library GPS Prediction XKKML Long ${geoPoint.longitude} Lat ${geoPoint.latitude}" +
+                    " XKK Long ${geoPointXkk.longitude} Lat ${geoPointXkk.latitude}"
         )
 
     }
@@ -92,10 +97,15 @@ class KalmanFilter(
             xkKm1.data[0][0],
             xkKm1.data[1][0]
         )
+        val geoPointXkk = Coordinates.metersToGeoPoint(
+            xkK.data[0][0],
+            xkK.data[1][0]
+        )
 
         Log.d(
             "KalmanFilter::",
-            "Values From Library GPS Update Long ${geoPoint.longitude} Lat ${geoPoint.latitude}"
+            "Values From Library GPS Update XKKML Long ${geoPoint.longitude} Lat ${geoPoint.latitude}" +
+                    " XKK Long ${geoPointXkk.longitude} Lat ${geoPointXkk.latitude}"
         )
 
         //we don't use this :

@@ -23,7 +23,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-class MainViewModel(
+class GPSViewModel(
     application: Application,
     var gpsAccKalmanFilter: GPSAccKalmanFilter,
     var geohashRTFilter: GeohashRTFilter
@@ -43,8 +43,6 @@ class MainViewModel(
     }
 
     /**
-     * Location is implemented from the reference of Map box SDK, which is of Open Source
-     * <p>
      * (c) https://github.com/mapbox/mapbox-events-android/tree/master/liblocation/src/main/java/com/mapbox/android/core/location
      */
     @SuppressLint("MissingPermission")
@@ -103,6 +101,10 @@ class MainViewModel(
             location.longitude == 0.0 ||
             location.provider != Utils.LOCATION_FROM_FILTER
         ) {
+            Log.d(
+                "KalmanFilter::",
+                "Values From Library Location details are not valid"
+            )
             return
         }
         geoValues.postValue(
@@ -174,8 +176,8 @@ class MainViewModel(
         ) :
             ViewModelProvider.Factory {
             override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-                return if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
-                    MainViewModel(application, gpsAccKalmanFilter, geohashRTFilter) as T
+                return if (modelClass.isAssignableFrom(GPSViewModel::class.java)) {
+                    GPSViewModel(application, gpsAccKalmanFilter, geohashRTFilter) as T
                 } else {
                     throw IllegalArgumentException("ViewModel not found")
                 }

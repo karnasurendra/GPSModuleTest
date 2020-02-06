@@ -6,14 +6,14 @@
 
         <variable
             name="mainViewModel"
-            type="com.apprikart.rotationmatrixdemo.viewmodels.MainViewModel" />
+            type="com.apprikart.rotationmatrixdemo.viewmodels.GPSViewModel" />
     </data>
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:padding="10dp"
-        tools:context=".views.MainActivity">
+        tools:context=".views.GPSActivity">
 
         <LinearLayout
             android:id="@+id/header_lay"

@@ -6,20 +6,21 @@ import android.hardware.*
 import android.location.Location
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProviders
-import com.apprikart.rotationmatrixdemo.SensorsApp
+import com.apprikart.rotationmatrixdemo.GPSApp
 import com.apprikart.rotationmatrixdemo.Utils
 import com.apprikart.rotationmatrixdemo.filters.Coordinates
 import com.apprikart.rotationmatrixdemo.models.SensorGpsDataItem
-import com.apprikart.rotationmatrixdemo.viewmodels.MainViewModel
+import com.apprikart.rotationmatrixdemo.viewmodels.GPSViewModel
 import java.util.*
 import java.util.concurrent.PriorityBlockingQueue
 import javax.inject.Inject
 import kotlin.math.cos
 import kotlin.math.sin
 
-abstract class MainActivity : AppCompatActivity() {
+abstract class GPSActivity : AppCompatActivity() {
 
     private val permissions = arrayOf(
         Manifest.permission.ACCESS_FINE_LOCATION,
@@ -41,23 +42,23 @@ abstract class MainActivity : AppCompatActivity() {
     // SensorDataItem data will be added to this Queue
     private val mSensorDataQueue: Queue<SensorGpsDataItem> =
         PriorityBlockingQueue()
-    private lateinit var mainViewModel: MainViewModel
+    private lateinit var GPSViewModel: GPSViewModel
     @Inject
-    lateinit var mainViewModelFactory: MainViewModel.Companion.Factory
+    lateinit var GPSViewModelFactory: GPSViewModel.Companion.Factory
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Initializing the Dependency injection
-        (application as SensorsApp).getComponent().inject(this)
+        (application as GPSApp).getComponent().inject(this)
         // Initializing ViewModel with view model factory
-        mainViewModel =
-            ViewModelProviders.of(this, mainViewModelFactory).get(MainViewModel::class.java)
+        GPSViewModel =
+            ViewModelProviders.of(this, GPSViewModelFactory).get(GPSViewModel::class.java)
 
         // Initializing System Service
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
 
         // Location values will observe Here
-        mainViewModel.location.observe(this, androidx.lifecycle.Observer {
+        GPSViewModel.location.observe(this, androidx.lifecycle.Observer {
             onLocationUpdate(it)
         })
     }
@@ -97,7 +98,7 @@ abstract class MainActivity : AppCompatActivity() {
                         )
 
                         // It will initialize once the Location details get triggered
-                        if (mainViewModel.gpsAccKalmanFilter.isInitializedFromDI()) {
+                        if (GPSViewModel.gpsAccKalmanFilter.isInitializedFromDI()) {
                             return
                         }
 
@@ -141,7 +142,7 @@ abstract class MainActivity : AppCompatActivity() {
 
     /** This is the method which will start the Sensor
      * */
-    fun startGps() {
+    fun startTracking() {
         if (isAllSensorsAvailable()) {
             sensorsAvailability(true)
             checkPermissions()
@@ -151,7 +152,7 @@ abstract class MainActivity : AppCompatActivity() {
         }
 
         // Updating the distance in Text View - Optional
-        mainViewModel.geoValues.observeForever {
+        GPSViewModel.geoValues.observeForever {
             //            mBinding.distanceValuesTv.text = it
         }
 
@@ -160,18 +161,18 @@ abstract class MainActivity : AppCompatActivity() {
     /**Disconnection Part
      * Whenever want to stop the GPS Module, unregistering the Sensors, stopping the location filter and removing the Location updates
      * This can be called when the app goes to onPause or onStop State*/
-    fun stopGps() {
+    fun stopTracking() {
         unRegisterSensors()
         // Stopping the filter
-        mainViewModel.geohashRTFilter.stop()
-        mainViewModel.removeLocation()
+        GPSViewModel.geohashRTFilter.stop()
+        GPSViewModel.removeLocation()
     }
 
     /**This method will be useful when the application comes to restart state*/
-    fun reStartGps() {
+    fun reStartTracking() {
         initializeSensors()
-        mainViewModel.geohashRTFilter.reset()
-        mainViewModel.initLocation()
+        GPSViewModel.geohashRTFilter.reset()
+        GPSViewModel.initLocation()
     }
 
     /**This method has to override in the Child class to get the to get the permission details issue*/
@@ -182,7 +183,12 @@ abstract class MainActivity : AppCompatActivity() {
 
     private fun onLocationUpdate(location: Location) {
 
-        if (location.accuracy > 15) return
+        if (location.accuracy > 10) return
+
+        Log.d(
+            "KalmanFilter::",
+            "Values From Library Location Accuracy Less than 10"
+        )
 
         val xLong: Double = location.longitude
         val yLat: Double = location.latitude
@@ -206,8 +212,8 @@ abstract class MainActivity : AppCompatActivity() {
         updateMagneticDeclination(location, timeStamp)
 
         // Only once it has to initialize, It will initialize from DI it will not be null
-        if (mainViewModel.gpsAccKalmanFilter.isInitializedFromDI()) {
-            mainViewModel.gpsAccKalmanFilter.manualInit(
+        if (GPSViewModel.gpsAccKalmanFilter.isInitializedFromDI()) {
+            GPSViewModel.gpsAccKalmanFilter.manualInit(
                 false, // As per the reference project ( Mad-location-manager-master ) it is always false
                 Coordinates.longitudeToMeters(xLong),
                 Coordinates.latitudeToMeters(yLat),
@@ -264,12 +270,12 @@ abstract class MainActivity : AppCompatActivity() {
         /*Below method is to create directory and file in the Storage*/
 //        createDirAndFile()
         // Location implementation done by using reference of Map Box code
-        mainViewModel.initLocation()
+        GPSViewModel.initLocation()
         // Initializing the Sensors
         initializeSensors()
-        mainViewModel.needTerminate = false
+        GPSViewModel.needTerminate = false
         // Starting the background task
-        mainViewModel.initSensorDataLoopTask(mSensorDataQueue)
+        GPSViewModel.initSensorDataLoopTask(mSensorDataQueue)
     }
 
     private fun initializeSensors() {
