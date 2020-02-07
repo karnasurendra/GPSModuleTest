@@ -170,6 +170,7 @@ abstract class GPSActivity : AppCompatActivity() {
         this.rotationVectorSensorSamplingPeriod = rotationVectorSensorSamplingPeriod
 
         if (checkLocationAvailability()) {
+            locationAvailability(true)
             if (isAllSensorsAvailable()) {
                 sensorsAvailability(true)
                 checkPermissions()
@@ -177,6 +178,8 @@ abstract class GPSActivity : AppCompatActivity() {
                 sensorsAvailability(false)
                 return
             }
+        }else{
+            locationAvailability(false)
         }
 
     }
@@ -216,6 +219,9 @@ abstract class GPSActivity : AppCompatActivity() {
 
     /**This has to override in the Child class to get the sensors availability*/
     abstract fun sensorsAvailability(isSensorsAvailable: Boolean)
+
+    /**This has to override in the Child class to get the information regarding the Location Availability*/
+    abstract fun locationAvailability(isLocationAvailable: Boolean)
 
     private fun onLocationUpdate(location: Location) {
 
