@@ -32,6 +32,10 @@ abstract class GPSActivity : AppCompatActivity() {
     private val linAcceleration = FloatArray(4)
     private val accelerationVector = FloatArray(4)
     private lateinit var sensorEventListener: SensorEventListener
+    private var gpsAccuracy = 10
+    private var linearAccSensorSamplingPeriod = SensorManager.SENSOR_DELAY_NORMAL
+    private var rotationVectorSensorSamplingPeriod = SensorManager.SENSOR_DELAY_NORMAL
+    private var isTrackingStarted = false
     /**
      *  This is the declination of the horizontal component of the magnetic field from true north, in degrees
      *  Ref link : https://www.youtube.com/watch?v=uN5w24F4hGk
@@ -148,9 +152,26 @@ abstract class GPSActivity : AppCompatActivity() {
         }
     }
 
-    /** This is the method which will start the Sensor
+    /** This is the method which will start the Tracking Operation
+     * Accuracy will be used in the GPS Tracking option. OPTIONAL
+     * linearAccSensorSamplingPeriod is the time period for the LA sensor to get the data from Sensor. OPTIONAL (default = SensorManager.SENSOR_DELAY_NORMAL)
+     * rotationVectorSensorSamplingPeriod is the time period for the RotationVector sensor to get the data from Sensor. OPTIONAL (default = SensorManager.SENSOR_DELAY_NORMAL)
      * */
-    fun startTracking() {
+    fun startTracking(
+        gpsAccuracy: Int = this.gpsAccuracy,
+        linearAccSensorSamplingPeriod: Int = this.linearAccSensorSamplingPeriod,
+        rotationVectorSensorSamplingPeriod: Int = this.rotationVectorSensorSamplingPeriod
+    ) {
+
+        this.gpsAccuracy = gpsAccuracy
+        this.linearAccSensorSamplingPeriod = linearAccSensorSamplingPeriod
+        this.rotationVectorSensorSamplingPeriod = rotationVectorSensorSamplingPeriod
+
+        Log.d(
+            "GPSActivity::",
+            "Params Check Accuracy $gpsAccuracy LASamplingPeriod $linearAccSensorSamplingPeriod rotationVector $rotationVectorSensorSamplingPeriod"
+        )
+
         if (isAllSensorsAvailable()) {
             sensorsAvailability(true)
             checkPermissions()
@@ -159,12 +180,13 @@ abstract class GPSActivity : AppCompatActivity() {
             return
         }
 
-        // Updating the distance in Text View - Optional
-        gpsViewModel.geoValues.observeForever {
-            //            mBinding.distanceValuesTv.text = it
-        }
-
     }
+
+    /**This will provide the Location Values which are triggered from the GPS with the specific Accuracy*/
+    abstract fun gpsTrackingValues(location: Location)
+
+    /**This will give the information once the GPS got triggered*/
+    abstract fun trackingStarted()
 
     /**Disconnection Part
      * Whenever want to stop the GPS Module, unregistering the Sensors, stopping the location filter and removing the Location updates
@@ -191,11 +213,27 @@ abstract class GPSActivity : AppCompatActivity() {
 
     private fun onLocationUpdate(location: Location) {
 
-        if (location.accuracy > 15) return
+        Log.d(
+            "KalmanFilter::",
+            "Values From Library only Location"
+        )
+
+        if (location.accuracy > gpsAccuracy) return
+
+        if (!isTrackingStarted) {
+            Log.d(
+                "KalmanFilter::",
+                "Values From Library only Location Tracking not Started"
+            )
+            isTrackingStarted = true
+            trackingStarted()
+        }
+
+        gpsTrackingValues(location)
 
         Log.d(
             "KalmanFilter::",
-            "Values From Library Location Accuracy Less than 10 Location Long ${location.longitude} Lat ${location.latitude}"
+            "Values From Library only Location Tracking Started Accuracy less than ${gpsAccuracy} Location ${location.longitude} Lat ${location.latitude}"
         )
 
         val xLong: Double = location.longitude
@@ -273,11 +311,8 @@ abstract class GPSActivity : AppCompatActivity() {
         }
     }
 
-
     private fun init() {
-        /*Below method is to create directory and file in the Storage*/
-//        createDirAndFile()
-        // Location implementation done by using reference of Map Box code
+        // Location implementation done with the reference of Map Box
         gpsViewModel.initLocation()
         // Initializing the Sensors
         initializeSensors()
@@ -287,13 +322,14 @@ abstract class GPSActivity : AppCompatActivity() {
     }
 
     private fun initializeSensors() {
-
         /**Registering the Linear Acceleration Sensor*/
         registerLA()
         /**Registering the Rotation Vector Sensor*/
         registerRotationVector()
     }
 
+
+    /**Method will provide the Sensors Availability in a particular device*/
     private fun isAllSensorsAvailable(): Boolean {
         return (sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION) != null && sensorManager.getDefaultSensor(
             Sensor.TYPE_ROTATION_VECTOR
@@ -305,7 +341,7 @@ abstract class GPSActivity : AppCompatActivity() {
         sensorManager.registerListener(
             sensorEventListener,
             sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION),
-            SensorManager.SENSOR_DELAY_NORMAL
+            linearAccSensorSamplingPeriod
         )
     }
 
@@ -314,10 +350,9 @@ abstract class GPSActivity : AppCompatActivity() {
         sensorManager.registerListener(
             sensorEventListener,
             sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR),
-            SensorManager.SENSOR_DELAY_NORMAL
+            rotationVectorSensorSamplingPeriod
         )
     }
-
 
     /**Getting the Magnetic declination value of the particular location*/
     private fun updateMagneticDeclination(
