@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.hardware.*
 import android.location.Location
+import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -168,14 +169,22 @@ abstract class GPSActivity : AppCompatActivity() {
         this.linearAccSensorSamplingPeriod = linearAccSensorSamplingPeriod
         this.rotationVectorSensorSamplingPeriod = rotationVectorSensorSamplingPeriod
 
-        if (isAllSensorsAvailable()) {
-            sensorsAvailability(true)
-            checkPermissions()
-        } else {
-            sensorsAvailability(false)
-            return
+        if (checkLocationAvailability()) {
+            if (isAllSensorsAvailable()) {
+                sensorsAvailability(true)
+                checkPermissions()
+            } else {
+                sensorsAvailability(false)
+                return
+            }
         }
 
+    }
+
+    /**This will provide the Location Availability in a device*/
+    private fun checkLocationAvailability(): Boolean {
+        val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
     }
 
     /**This will provide the Location Values which are triggered from the GPS with the specific Accuracy*/
@@ -210,7 +219,6 @@ abstract class GPSActivity : AppCompatActivity() {
 
     private fun onLocationUpdate(location: Location) {
 
-
         if (location.accuracy > gpsAccuracy) return
 
         if (!isTrackingStarted) {
@@ -219,11 +227,6 @@ abstract class GPSActivity : AppCompatActivity() {
         }
 
         gpsTrackingValues(location)
-
-        Log.d(
-            "KalmanFilter::",
-            "Values From Library only Location Tracking Started Accuracy less than $gpsAccuracy Location ${location.longitude} Lat ${location.latitude}"
-        )
 
         val xLong: Double = location.longitude
         val yLat: Double = location.latitude
