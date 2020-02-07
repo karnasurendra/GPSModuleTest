@@ -54,7 +54,7 @@ class GPSViewModel(
     }
 
     fun removeLocation() {
-        locationEngine.removeLocationUpdates(locationUpdateFromEngine)
+            locationEngine.removeLocationUpdates(locationUpdateFromEngine)
     }
 
     fun initSensorDataLoopTask(mSensorDataQueue: Queue<SensorGpsDataItem>) {

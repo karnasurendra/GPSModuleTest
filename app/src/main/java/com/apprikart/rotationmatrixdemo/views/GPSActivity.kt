@@ -36,6 +36,7 @@ abstract class GPSActivity : AppCompatActivity() {
     private var linearAccSensorSamplingPeriod = SensorManager.SENSOR_DELAY_NORMAL
     private var rotationVectorSensorSamplingPeriod = SensorManager.SENSOR_DELAY_NORMAL
     private var isTrackingStarted = false
+    private var isLocationEngineStarted = false
     /**
      *  This is the declination of the horizontal component of the magnetic field from true north, in degrees
      *  Ref link : https://www.youtube.com/watch?v=uN5w24F4hGk
@@ -167,11 +168,6 @@ abstract class GPSActivity : AppCompatActivity() {
         this.linearAccSensorSamplingPeriod = linearAccSensorSamplingPeriod
         this.rotationVectorSensorSamplingPeriod = rotationVectorSensorSamplingPeriod
 
-        Log.d(
-            "GPSActivity::",
-            "Params Check Accuracy $gpsAccuracy LASamplingPeriod $linearAccSensorSamplingPeriod rotationVector $rotationVectorSensorSamplingPeriod"
-        )
-
         if (isAllSensorsAvailable()) {
             sensorsAvailability(true)
             checkPermissions()
@@ -194,8 +190,9 @@ abstract class GPSActivity : AppCompatActivity() {
     fun stopTracking() {
         unRegisterSensors()
         // Stopping the filter
-        gpsViewModel.geohashRTFilter.stop()
-        gpsViewModel.removeLocation()
+//        gpsViewModel.geohashRTFilter.stop()
+        if (isLocationEngineStarted)
+            gpsViewModel.removeLocation()
     }
 
     /**This method will be useful when the application comes to restart state*/
@@ -213,18 +210,10 @@ abstract class GPSActivity : AppCompatActivity() {
 
     private fun onLocationUpdate(location: Location) {
 
-        Log.d(
-            "KalmanFilter::",
-            "Values From Library only Location"
-        )
 
         if (location.accuracy > gpsAccuracy) return
 
         if (!isTrackingStarted) {
-            Log.d(
-                "KalmanFilter::",
-                "Values From Library only Location Tracking not Started"
-            )
             isTrackingStarted = true
             trackingStarted()
         }
@@ -233,7 +222,7 @@ abstract class GPSActivity : AppCompatActivity() {
 
         Log.d(
             "KalmanFilter::",
-            "Values From Library only Location Tracking Started Accuracy less than ${gpsAccuracy} Location ${location.longitude} Lat ${location.latitude}"
+            "Values From Library only Location Tracking Started Accuracy less than $gpsAccuracy Location ${location.longitude} Lat ${location.latitude}"
         )
 
         val xLong: Double = location.longitude
@@ -314,6 +303,7 @@ abstract class GPSActivity : AppCompatActivity() {
     private fun init() {
         // Location implementation done with the reference of Map Box
         gpsViewModel.initLocation()
+        isLocationEngineStarted = true
         // Initializing the Sensors
         initializeSensors()
         gpsViewModel.needTerminate = false
