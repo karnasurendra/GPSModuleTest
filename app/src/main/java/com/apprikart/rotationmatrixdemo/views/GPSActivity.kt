@@ -183,7 +183,7 @@ abstract class GPSActivity : AppCompatActivity() {
 
     private fun onLocationUpdate(location: Location) {
 
-        if (location.accuracy > 10) return
+        if (location.accuracy > 15) return
 
         Log.d(
             "KalmanFilter::",
