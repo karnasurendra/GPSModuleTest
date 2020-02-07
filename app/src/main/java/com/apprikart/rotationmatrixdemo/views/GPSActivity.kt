@@ -83,6 +83,10 @@ abstract class GPSActivity : AppCompatActivity() {
 
                 when (event.sensor.type) {
                     Sensor.TYPE_LINEAR_ACCELERATION -> {
+                        Log.d(
+                            "KalmanFilter::",
+                            "Values From Library onSensorChanged Linear Acceleration"
+                        )
                         // Converting the Linear Acceleration values to an Array
                         System.arraycopy(event.values, 0, linAcceleration, 0, event.values.size)
                         /**Multiplying the inverted Rotation Matrix values with the linear acceleration sensor values
@@ -125,6 +129,10 @@ abstract class GPSActivity : AppCompatActivity() {
                     }
 
                     Sensor.TYPE_ROTATION_VECTOR -> {
+                        Log.d(
+                            "KalmanFilter::",
+                            "Values From Library onSensorChanged Type Rotation vector"
+                        )
                         /** Getting Rotation Matrix values from Rotation Vector Component,
                         which is 16 size array in Matrix form 4 x 4 matrix
                          *  one dimensions for each axis x, y, and z, plus one dimension to represent the
@@ -171,7 +179,7 @@ abstract class GPSActivity : AppCompatActivity() {
     /**This method will be useful when the application comes to restart state*/
     fun reStartTracking() {
         initializeSensors()
-        gpsViewModel.geohashRTFilter.reset()
+//        gpsViewModel.geohashRTFilter.reset()
         gpsViewModel.initLocation()
     }
 
@@ -187,7 +195,7 @@ abstract class GPSActivity : AppCompatActivity() {
 
         Log.d(
             "KalmanFilter::",
-            "Values From Library Location Accuracy Less than 10"
+            "Values From Library Location Accuracy Less than 10 Location Long ${location.longitude} Lat ${location.latitude}"
         )
 
         val xLong: Double = location.longitude
