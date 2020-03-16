@@ -3,7 +3,6 @@ package com.apprikart.rotationmatrixdemo.viewmodels
 import android.annotation.SuppressLint
 import android.app.Application
 import android.location.Location
-import android.util.Log
 import androidx.lifecycle.*
 import com.apprikart.rotationmatrixdemo.Utils
 import com.apprikart.rotationmatrixdemo.filters.Coordinates
@@ -13,10 +12,12 @@ import com.apprikart.rotationmatrixdemo.location.LocationEngineProvider
 import com.apprikart.rotationmatrixdemo.location.LocationEngineRequest
 import com.apprikart.rotationmatrixdemo.location.LocationUpdateFromEngine
 import com.apprikart.rotationmatrixdemo.loggers.GeohashRTFilter
+import com.apprikart.rotationmatrixdemo.models.DistanceModel
 import com.apprikart.rotationmatrixdemo.models.SensorGpsDataItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.io.File
 import java.util.*
 import javax.inject.Inject
 import kotlin.math.cos
@@ -29,7 +30,11 @@ class GPSViewModel(
     var geohashRTFilter: GeohashRTFilter
 ) : AndroidViewModel(application) {
 
+    private var lastTimeStamp: Double = 0.0
+    private var isLocationTriggered = false
     var geoValues = MutableLiveData<String>()
+    var distanceUpdates = MutableLiveData<DistanceModel>()
+    var toastObserver = MutableLiveData<String>()
     var needTerminate = true
     private lateinit var locationEngine: LocationEngine
     private lateinit var locationUpdateFromEngine: LocationUpdateFromEngine
@@ -54,7 +59,7 @@ class GPSViewModel(
     }
 
     fun removeLocation() {
-            locationEngine.removeLocationUpdates(locationUpdateFromEngine)
+        locationEngine.removeLocationUpdates(locationUpdateFromEngine)
     }
 
     fun initSensorDataLoopTask(mSensorDataQueue: Queue<SensorGpsDataItem>) {
@@ -62,61 +67,87 @@ class GPSViewModel(
             while (!needTerminate) {
                 delay(500)
                 var sdi: SensorGpsDataItem
-                var lastTimeStamp = 0.0
                 while (!mSensorDataQueue.isEmpty()) {
                     sdi = mSensorDataQueue.poll()!!
                     if (sdi.timestamp < lastTimeStamp) {
                         continue
                     }
-                    lastTimeStamp = sdi.timestamp
                     // If Location is not triggered, it will be Not Initialized
                     if (sdi.gpsLat == SensorGpsDataItem.NOT_INITIALIZED) {
-                        Log.d(
-                            "KalmanFilter::",
-                            "Values From Library ViewModel GPS not Initialized"
-                        )
                         handlePredict(sdi)
+                        if (isLocationTriggered) {
+                            onLocationChangedImp(
+                                locationAfterUpdateStep(sdi, false),
+                                lastTimeStamp,
+                                sdi.timestamp
+                            )
+                        }
                     } else {
-                        Log.d(
-                            "KalmanFilter::",
-                            "Values From Library ViewModel GPS Initialized"
-                        )
+                        isLocationTriggered = true
                         handleUpdate(sdi)
-                        val location = locationAfterUpdateStep(sdi)
-                        onLocationChangedImp(location)
+                        onLocationChangedImp(
+                            locationAfterUpdateStep(sdi, true),
+                            lastTimeStamp,
+                            sdi.timestamp
+                        )
                     }
+                    lastTimeStamp = sdi.timestamp
                 }
             }
         }
     }
 
-    private fun onLocationChangedImp(location: Location) {
+    private fun onLocationChangedImp(
+        location: Location,
+        lastTimeStamp: Double,
+        currentTimeStamp: Double
+    ) {
 
-        Log.d(
-            "KalmanFilter::",
-            "Values From Library ViewModel GPS Initialized onLocationChangesImp"
-        )
         // Location provider will change in GeoHashRTFilter class
-        if (location.latitude == 0.0 ||
+        /*if (location.latitude == 0.0 ||
             location.longitude == 0.0 ||
             location.provider != Utils.LOCATION_FROM_FILTER
         ) {
-            Log.d(
-                "KalmanFilter::",
-                "Values From Library Location details are not valid"
-            )
             return
-        }
+        }*/
+/*
         geoValues.postValue(
             "Distance Geo : ${geohashRTFilter.getDistanceGeoFiltered()} \n" +
                     "Distance Geo HP : ${geohashRTFilter.getDistanceGeoFilteredHP()} \n" +
                     "DistanceAsIs : ${geohashRTFilter.getDistanceAsIs()} \n" +
                     "DistanceAsIs HP : ${geohashRTFilter.getDistanceAsIsHP()}"
         )
+*/
+
+        val speedAsIs = geohashRTFilter.getDistanceAsIsNew() / (currentTimeStamp - lastTimeStamp)
+        val speedAsIsHp =
+            geohashRTFilter.getDistanceAsIsHPNew() / (currentTimeStamp - lastTimeStamp)
+
+        if (speedAsIs > 50 || speedAsIsHp > 50) {
+            toastObserver.value =
+                "Speed is More than 50"
+        }
+
+        val distanceModel =
+            DistanceModel(
+                lastTimeStamp,
+                currentTimeStamp,
+                geohashRTFilter.getDistanceAsIsNew(),
+                geohashRTFilter.getDistanceAsIsHPNew(),
+                speedAsIs,
+                speedAsIsHp,
+                geohashRTFilter.getDistanceAsIs(),
+                geohashRTFilter.getDistanceAsIsHP(),
+                if (location.provider == Utils.LOCATION_FROM_FILTER) 0.0 else geohashRTFilter.getDistanceGeoFiltered(),
+                if (location.provider == Utils.LOCATION_FROM_FILTER) 0.0 else geohashRTFilter.getDistanceGeoFilteredHP()
+            )
+
+        distanceUpdates.value = distanceModel
+
 
     }
 
-    private fun locationAfterUpdateStep(sdi: SensorGpsDataItem): Location {
+    private fun locationAfterUpdateStep(sdi: SensorGpsDataItem, isFromGps: Boolean): Location {
 
         val loc = Location(Utils.LOCATION_FROM_FILTER)
 
@@ -128,18 +159,20 @@ class GPSViewModel(
 
         loc.latitude = geoPoint.latitude
         loc.longitude = geoPoint.longitude
-        loc.altitude = sdi.gpsAlt
         val xVel = gpsAccKalmanFilter.getCurrentXVel()
         val yVel = gpsAccKalmanFilter.getCurrentYVel()
 
         val speed =
             sqrt(xVel * xVel + yVel * yVel) //scalar speed without bearing Note : Scalar means one dimensional quantity
 
-        loc.bearing = sdi.course.toFloat()
+        if (isFromGps) {
+            loc.bearing = sdi.course.toFloat()
+            loc.altitude = sdi.gpsAlt
+            loc.accuracy = sdi.posErr.toFloat()
+        }
         loc.speed = speed.toFloat()
         loc.time = System.currentTimeMillis()
         loc.elapsedRealtimeNanos = System.nanoTime()
-        loc.accuracy = sdi.posErr.toFloat()
 
         geohashRTFilter.filter(loc)
 

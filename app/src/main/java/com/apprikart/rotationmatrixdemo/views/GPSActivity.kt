@@ -8,13 +8,18 @@ import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProviders
 import com.apprikart.rotationmatrixdemo.GPSApp
 import com.apprikart.rotationmatrixdemo.Utils
 import com.apprikart.rotationmatrixdemo.filters.Coordinates
+import com.apprikart.rotationmatrixdemo.models.DistanceModel
 import com.apprikart.rotationmatrixdemo.models.SensorGpsDataItem
 import com.apprikart.rotationmatrixdemo.viewmodels.GPSViewModel
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 import java.util.*
 import java.util.concurrent.PriorityBlockingQueue
 import javax.inject.Inject
@@ -25,7 +30,8 @@ abstract class GPSActivity : AppCompatActivity() {
 
     private val permissions = arrayOf(
         Manifest.permission.ACCESS_FINE_LOCATION,
-        Manifest.permission.ACCESS_COARSE_LOCATION
+        Manifest.permission.ACCESS_COARSE_LOCATION,
+        Manifest.permission.WRITE_EXTERNAL_STORAGE
     )
     private lateinit var sensorManager: SensorManager
     private val mRotationMatrix = FloatArray(16)
@@ -38,6 +44,8 @@ abstract class GPSActivity : AppCompatActivity() {
     private var rotationVectorSensorSamplingPeriod = SensorManager.SENSOR_DELAY_NORMAL
     private var isTrackingStarted = false
     private var isLocationEngineStarted = false
+    private lateinit var csvFile: File
+
     /**
      *  This is the declination of the horizontal component of the magnetic field from true north, in degrees
      *  Ref link : https://www.youtube.com/watch?v=uN5w24F4hGk
@@ -49,6 +57,7 @@ abstract class GPSActivity : AppCompatActivity() {
     private val mSensorDataQueue: Queue<SensorGpsDataItem> =
         PriorityBlockingQueue()
     private lateinit var gpsViewModel: GPSViewModel
+
     @Inject
     lateinit var gpsViewModelFactory: GPSViewModel.Companion.Factory
 
@@ -67,6 +76,16 @@ abstract class GPSActivity : AppCompatActivity() {
         gpsViewModel.location.observe(this, androidx.lifecycle.Observer {
             onLocationUpdate(it)
         })
+
+        gpsViewModel.distanceUpdates.observe(this, androidx.lifecycle.Observer {
+            writeDataToFile(it)
+        })
+
+        gpsViewModel.toastObserver.observe(this, androidx.lifecycle.Observer {
+            Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
+        })
+
+
     }
 
     override fun onResume() {
@@ -178,7 +197,7 @@ abstract class GPSActivity : AppCompatActivity() {
                 sensorsAvailability(false)
                 return
             }
-        }else{
+        } else {
             locationAvailability(false)
         }
 
@@ -237,6 +256,7 @@ abstract class GPSActivity : AppCompatActivity() {
         val xLong: Double = location.longitude
         val yLat: Double = location.latitude
         val speed: Double = location.speed.toDouble()
+
         /**Bearing is the horizontal direction of travel of this device, and is not related to the device orientation.
          *It is guaranteed to be in the range (0.0, 360.0] if the device has a bearing.
          *If this location does not have a bearing then 0.0 is returned.*/
@@ -249,6 +269,7 @@ abstract class GPSActivity : AppCompatActivity() {
             Utils.nano2milli(
                 location.elapsedRealtimeNanos
             )
+
         /**WARNING!!! here should be speed accuracy, but loc.hasSpeedAccuracy()
          *and loc.getSpeedAccuracyMetersPerSecond() requires API 26*/
         val velError = location.accuracy * 0.1
@@ -376,5 +397,50 @@ abstract class GPSActivity : AppCompatActivity() {
             sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
         )
     }
+
+    private fun createDirAndFile() {
+        val path = getExternalFilesDir(null)
+        val andLoc = path.toString().indexOf("Android")
+        val filtered = path.toString().substring(0 until andLoc)
+        val file: File
+        file = if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
+            File(filtered, "GPS")
+        } else {
+            File(path, "GPS")
+
+        }
+        if (!file.exists()) {
+            file.mkdir()
+        }
+        csvFile = File(file, "gps_data.csv")
+
+        if (!csvFile.exists()) {
+            csvFile.createNewFile()
+        }
+
+    }
+
+    private fun writeDataToFile(distanceModel: DistanceModel) {
+        val data =
+            "${distanceModel.lastTimeStamp}," +
+                    "${distanceModel.currentTimeStamp}" +
+                    ",${distanceModel.distanceAsIs}" +
+                    ",${distanceModel.distanceAsIsHp}" +
+                    ",${distanceModel.speedAsIs}" +
+                    ",${distanceModel.speedAsIsHp}," +
+                    "${distanceModel.totalDistanceAsIs}\n" +
+                    "${distanceModel.totalDistanceAsIsHp}\n" +
+                    "${distanceModel.totalDistanceGeoFiltered}\n" +
+                    "${distanceModel.totalDistanceGeoFilteredHp}\n"
+        try {
+            val fof = FileOutputStream(csvFile, true)
+            fof.write(data.toByteArray())
+            fof.close()
+        } catch (e: IOException) {
+            Log.d("Main::", "Writing to File Failed ${e.message}")
+        }
+
+    }
+
 
 }

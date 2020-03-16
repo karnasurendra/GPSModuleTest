@@ -18,7 +18,9 @@ class GeohashRTFilter(private val geohashPrecision: Int, private val geohashminP
     private lateinit var lastApprovedGeoPoint: GeoPoint
     private lateinit var lastGeoPointAsIs: GeoPoint
     private var mDistanceAsIs: Double = 0.0
+    private var mDistanceAsIsNew: Double = 0.0
     private var mDistanceAsIsHp: Double = 0.0
+    private var mDistanceAsIsHpNew: Double = 0.0
     private val hpResBuffAsIs = FloatArray(3)
     private val hpResBuffGeo = FloatArray(3)
     private var distanceGeoFiltered = 0.0
@@ -29,7 +31,7 @@ class GeohashRTFilter(private val geohashPrecision: Int, private val geohashminP
         reset()
     }
 
-    fun reset() {
+    private fun reset() {
         mGeoFilteredTrack.clear()
         geoHashBuffers = LongArray(2)
         pointsInCurrentGeoHashCount = 0
@@ -47,6 +49,7 @@ class GeohashRTFilter(private val geohashPrecision: Int, private val geohashminP
         )
         distanceGeoFiltered = 0.0.also { distanceGeoFilteredHp = it }
         mDistanceAsIs = 0.0.also { mDistanceAsIsHp = it }
+        mDistanceAsIsNew = 0.0.also { mDistanceAsIsHpNew = it }
         isFirstCoordinate = true
     }
 
@@ -71,6 +74,7 @@ class GeohashRTFilter(private val geohashPrecision: Int, private val geohashminP
             return
         }
 
+        /*Calculating the distance between Locations through Coordinates Class*/
         mDistanceAsIs += Coordinates.distanceBetween(
             lastGeoPointAsIs.longitude,
             lastGeoPointAsIs.latitude,
@@ -78,6 +82,16 @@ class GeohashRTFilter(private val geohashPrecision: Int, private val geohashminP
             pi.latitude
         )
 
+        /*16th March*/
+        mDistanceAsIsNew = 0.0
+        mDistanceAsIsNew = Coordinates.distanceBetween(
+            lastGeoPointAsIs.longitude,
+            lastGeoPointAsIs.latitude,
+            pi.longitude,
+            pi.latitude
+        )
+
+        /*Calculating the distance between Locations through Location Class*/
         Location.distanceBetween(
             lastGeoPointAsIs.latitude,
             lastGeoPointAsIs.longitude,
@@ -87,6 +101,10 @@ class GeohashRTFilter(private val geohashPrecision: Int, private val geohashminP
         )
 
         mDistanceAsIsHp += hpResBuffAsIs[0]
+        /*16th March*/
+        mDistanceAsIsHpNew = 0.0
+        mDistanceAsIsHpNew = hpResBuffAsIs[0].toDouble()
+
         lastGeoPointAsIs.longitude = loc.longitude
         lastGeoPointAsIs.latitude = loc.latitude
 
@@ -194,8 +212,18 @@ class GeohashRTFilter(private val geohashPrecision: Int, private val geohashminP
         return mDistanceAsIs
     }
 
+    /*16th March*/
+    fun getDistanceAsIsNew(): Double {
+        return mDistanceAsIsNew
+    }
+
     fun getDistanceAsIsHP(): Double {
         return mDistanceAsIsHp
+    }
+
+    /*16th March*/
+    fun getDistanceAsIsHPNew(): Double {
+        return mDistanceAsIsHpNew
     }
 
     fun getGeoFilteredTrack(): List<Location> {
