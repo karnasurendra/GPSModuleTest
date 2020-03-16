@@ -142,7 +142,7 @@ class GPSViewModel(
                 if (location.provider == Utils.LOCATION_FROM_FILTER) 0.0 else geohashRTFilter.getDistanceGeoFilteredHP()
             )
 
-        distanceUpdates.value = distanceModel
+        distanceUpdates.postValue(distanceModel)
 
     }
 
