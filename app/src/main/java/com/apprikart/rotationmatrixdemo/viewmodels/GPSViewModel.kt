@@ -144,7 +144,6 @@ class GPSViewModel(
 
         distanceUpdates.value = distanceModel
 
-
     }
 
     private fun locationAfterUpdateStep(sdi: SensorGpsDataItem, isFromGps: Boolean): Location {
