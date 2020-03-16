@@ -321,6 +321,7 @@ abstract class GPSActivity : AppCompatActivity() {
                     permissions
                 )
             ) {
+
                 init()
             } else {
                 permissionIssue(permissions)
@@ -331,6 +332,7 @@ abstract class GPSActivity : AppCompatActivity() {
     }
 
     private fun init() {
+        createDirAndFile()
         // Location implementation done with the reference of Map Box
         gpsViewModel.initLocation()
         isLocationEngineStarted = true
