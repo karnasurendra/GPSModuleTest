@@ -136,21 +136,6 @@ class GPSViewModel(
         val speedAsIsHp =
             geohashRTFilter.getDistanceAsIsHPNew() / (currentTimeStamp - lastTimeStamp)
 
-/*        val distanceModel =
-            DistanceModel(
-                lastTimeStamp,
-                currentTimeStamp,
-                geohashRTFilter.getDistanceAsIsNew(),
-                geohashRTFilter.getDistanceAsIsHPNew(),
-                speedAsIs,
-                speedAsIsHp,
-                geohashRTFilter.getDistanceAsIs(),
-                geohashRTFilter.getDistanceAsIsHP(),
-                if (location.provider == Utils.LOCATION_FROM_FILTER) 0.0 else geohashRTFilter.getDistanceGeoFiltered(),
-                if (location.provider == Utils.LOCATION_FROM_FILTER) 0.0 else geohashRTFilter.getDistanceGeoFilteredHP()
-            )
-
-        distanceUpdates.postValue(distanceModel)*/
 
     }
 
