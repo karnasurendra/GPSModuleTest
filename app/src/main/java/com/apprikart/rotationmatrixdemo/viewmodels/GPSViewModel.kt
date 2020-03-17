@@ -173,6 +173,11 @@ class GPSViewModel(
             sqrt(xVel * xVel + yVel * yVel) //scalar speed without bearing Note : Scalar means one dimensional quantity
 
         val speedNew = (speed * 9.81 * 1000) / 3600
+
+        if (speedNew > 40) {
+            toastObserver.postValue("Speed is greater than 40")
+        }
+
         val distanceModel = DistanceModel(speed, speedNew)
 
         speedObserver.postValue(distanceModel)
