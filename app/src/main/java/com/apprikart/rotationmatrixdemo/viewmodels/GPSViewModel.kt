@@ -76,13 +76,13 @@ class GPSViewModel(
                     // If Location is not triggered, it will be Not Initialized
                     if (sdi.gpsLat == SensorGpsDataItem.NOT_INITIALIZED) {
                         handlePredict(sdi)
-                        if (isLocationTriggered) {
+                        /*if (isLocationTriggered) {
                             onLocationChangedImp(
                                 locationAfterUpdateStep(sdi, false),
                                 lastTimeStamp,
                                 sdi.timestamp
                             )
-                        }
+                        }*/
                     } else {
                         isLocationTriggered = true
                         handleUpdate(sdi)
