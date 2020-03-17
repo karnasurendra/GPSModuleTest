@@ -165,9 +165,9 @@ class GPSViewModel(
 
         speedObserver.postValue(distanceModel)
 
-        if (speed > 40 || regSpeed > 40) {
+        /*if (speed > 40 || regSpeed > 40) {
             toastObserver.postValue("Speed is More than 40")
-        }
+        }*/
 
         if (isFromGps) {
             loc.bearing = sdi.course.toFloat()

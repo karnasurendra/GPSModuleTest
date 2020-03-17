@@ -427,7 +427,7 @@ abstract class GPSActivity : AppCompatActivity() {
 
     private fun writeDataToFile(distanceModel: DistanceModel) {
         val data =
-            "Regular Speed : ${distanceModel.regSpeed}, Speed : ${distanceModel.magSpeed}"
+            "Regular Speed : ${distanceModel.regSpeed}, Speed : ${distanceModel.magSpeed} \n"
         try {
             val fof = FileOutputStream(csvFile, true)
             fof.write(data.toByteArray())
