@@ -86,7 +86,7 @@ abstract class GPSActivity : AppCompatActivity() {
         })
 
         gpsViewModel.speedObserver.observe(this, androidx.lifecycle.Observer {
-            Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
+            writeDataToFile(it)
         })
 
 
@@ -427,16 +427,7 @@ abstract class GPSActivity : AppCompatActivity() {
 
     private fun writeDataToFile(distanceModel: DistanceModel) {
         val data =
-            "${distanceModel.lastTimeStamp}," +
-                    "${distanceModel.currentTimeStamp}" +
-                    ",${distanceModel.distanceAsIs}" +
-                    ",${distanceModel.distanceAsIsHp}" +
-                    ",${distanceModel.speedAsIs}" +
-                    ",${distanceModel.speedAsIsHp}," +
-                    "${distanceModel.totalDistanceAsIs}\n" +
-                    "${distanceModel.totalDistanceAsIsHp}\n" +
-                    "${distanceModel.totalDistanceGeoFiltered}\n" +
-                    "${distanceModel.totalDistanceGeoFilteredHp}\n"
+            "Regular Speed : ${distanceModel.regSpeed}, Speed : ${distanceModel.magSpeed}"
         try {
             val fof = FileOutputStream(csvFile, true)
             fof.write(data.toByteArray())

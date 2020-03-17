@@ -1,7 +1,7 @@
 package com.apprikart.rotationmatrixdemo.models
 
 data class DistanceModel(
-    val lastTimeStamp: Double,
+    /*val lastTimeStamp: Double,
     val currentTimeStamp: Double,
     val distanceAsIs: Double,
     val distanceAsIsHp: Double,
@@ -10,5 +10,7 @@ data class DistanceModel(
     val totalDistanceAsIs: Double,
     val totalDistanceAsIsHp: Double,
     val totalDistanceGeoFiltered: Double,
-    val totalDistanceGeoFilteredHp: Double
+    val totalDistanceGeoFilteredHp: Double*/
+    val regSpeed: Double,
+    val magSpeed: Double
 )
