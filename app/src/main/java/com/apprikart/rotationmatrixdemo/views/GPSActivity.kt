@@ -85,6 +85,10 @@ abstract class GPSActivity : AppCompatActivity() {
             Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
         })
 
+        gpsViewModel.speedObserver.observe(this, androidx.lifecycle.Observer {
+            Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
+        })
+
 
     }
 
@@ -321,7 +325,6 @@ abstract class GPSActivity : AppCompatActivity() {
                     permissions
                 )
             ) {
-
                 init()
             } else {
                 permissionIssue(permissions)

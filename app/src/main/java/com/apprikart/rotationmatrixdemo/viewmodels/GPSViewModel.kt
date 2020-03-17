@@ -35,6 +35,7 @@ class GPSViewModel(
     var geoValues = MutableLiveData<String>()
     var distanceUpdates = MutableLiveData<DistanceModel>()
     var toastObserver = MutableLiveData<String>()
+    var speedObserver = MutableLiveData<String>()
     var needTerminate = true
     private lateinit var locationEngine: LocationEngine
     private lateinit var locationUpdateFromEngine: LocationUpdateFromEngine
@@ -124,8 +125,8 @@ class GPSViewModel(
             geohashRTFilter.getDistanceAsIsHPNew() / (currentTimeStamp - lastTimeStamp)
 
         if (speedAsIs > 50 || speedAsIsHp > 50) {
-            toastObserver.value =
-                "Speed is More than 50"
+            toastObserver.postValue("Speed is More than 50")
+
         }
 
         val distanceModel =
@@ -163,6 +164,8 @@ class GPSViewModel(
 
         val speed =
             sqrt(xVel * xVel + yVel * yVel) //scalar speed without bearing Note : Scalar means one dimensional quantity
+
+        speedObserver.postValue("Speed is more than 40 -- $speed")
 
         if (isFromGps) {
             loc.bearing = sdi.course.toFloat()
