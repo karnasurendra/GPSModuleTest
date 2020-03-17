@@ -14,6 +14,7 @@ import com.apprikart.rotationmatrixdemo.location.LocationUpdateFromEngine
 import com.apprikart.rotationmatrixdemo.loggers.GeohashRTFilter
 import com.apprikart.rotationmatrixdemo.models.DistanceModel
 import com.apprikart.rotationmatrixdemo.models.SensorGpsDataItem
+import com.apprikart.rotationmatrixdemo.models.SensorsModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -32,7 +33,7 @@ class GPSViewModel(
 
     private var lastTimeStamp: Double = 0.0
     private var isLocationTriggered = false
-    var geoValues = MutableLiveData<String>()
+    var geoValues = MutableLiveData<SensorsModel>()
     var distanceUpdates = MutableLiveData<DistanceModel>()
     var toastObserver = MutableLiveData<String>()
     var speedObserver = MutableLiveData<DistanceModel>()
@@ -76,13 +77,13 @@ class GPSViewModel(
                     // If Location is not triggered, it will be Not Initialized
                     if (sdi.gpsLat == SensorGpsDataItem.NOT_INITIALIZED) {
                         handlePredict(sdi)
-                        /*if (isLocationTriggered) {
+                        if (isLocationTriggered) {
                             onLocationChangedImp(
                                 locationAfterUpdateStep(sdi, false),
                                 lastTimeStamp,
                                 sdi.timestamp
                             )
-                        }*/
+                        }
                     } else {
                         isLocationTriggered = true
                         handleUpdate(sdi)
@@ -119,6 +120,17 @@ class GPSViewModel(
                     "DistanceAsIs HP : ${geohashRTFilter.getDistanceAsIsHP()}"
         )
 */
+
+        val sensorsModel = SensorsModel(
+            "Distance",
+            Calendar.getInstance().timeInMillis,
+            0.0,
+            0.0,
+            0.0,
+            geohashRTFilter.getDistanceAsIs()
+        )
+        geoValues.postValue(sensorsModel)
+
 
         val speedAsIs = geohashRTFilter.getDistanceAsIsNew() / (currentTimeStamp - lastTimeStamp)
         val speedAsIsHp =
@@ -157,11 +169,11 @@ class GPSViewModel(
         val xVel = gpsAccKalmanFilter.getCurrentXVel()
         val yVel = gpsAccKalmanFilter.getCurrentYVel()
 
-        val regSpeed = xVel * xVel + yVel * yVel
         val speed =
             sqrt(xVel * xVel + yVel * yVel) //scalar speed without bearing Note : Scalar means one dimensional quantity
 
-        val distanceModel = DistanceModel(regSpeed, speed)
+        val speedNew = (speed * 9.81 * 1000) / 3600
+        val distanceModel = DistanceModel(speed, speedNew)
 
         speedObserver.postValue(distanceModel)
 

@@ -16,6 +16,7 @@ import com.apprikart.rotationmatrixdemo.Utils
 import com.apprikart.rotationmatrixdemo.filters.Coordinates
 import com.apprikart.rotationmatrixdemo.models.DistanceModel
 import com.apprikart.rotationmatrixdemo.models.SensorGpsDataItem
+import com.apprikart.rotationmatrixdemo.models.SensorsModel
 import com.apprikart.rotationmatrixdemo.viewmodels.GPSViewModel
 import java.io.File
 import java.io.FileOutputStream
@@ -45,6 +46,7 @@ abstract class GPSActivity : AppCompatActivity() {
     private var isTrackingStarted = false
     private var isLocationEngineStarted = false
     private lateinit var csvFile: File
+    private lateinit var sensorFile: File
 
     /**
      *  This is the declination of the horizontal component of the magnetic field from true north, in degrees
@@ -89,6 +91,25 @@ abstract class GPSActivity : AppCompatActivity() {
             writeDataToFile(it)
         })
 
+        gpsViewModel.geoValues.observe(this, androidx.lifecycle.Observer {
+            writeSensorDataToFile(it)
+        })
+
+
+    }
+
+    private fun constructSensorsData(sensorName: String, values: FloatArray) {
+        val sensorsModel =
+            SensorsModel(
+                sensorName,
+                Calendar.getInstance().timeInMillis,
+                values[0].toDouble(),
+                values[1].toDouble(),
+                values[2].toDouble(),
+                0.0
+            )
+
+        writeSensorDataToFile(sensorsModel)
 
     }
 
@@ -111,11 +132,21 @@ abstract class GPSActivity : AppCompatActivity() {
                     Utils.nano2milli(now)
 
                 when (event.sensor.type) {
+
+                    Sensor.TYPE_ACCELEROMETER -> {
+                        constructSensorsData(Utils.ACCELEROMETER, event.values)
+                    }
+
+                    Sensor.TYPE_GYROSCOPE -> {
+                        constructSensorsData(Utils.GYROSCOPE, event.values)
+                    }
+
+                    Sensor.TYPE_MAGNETIC_FIELD -> {
+                        constructSensorsData(Utils.MAGNETOMETER, event.values)
+                    }
+
                     Sensor.TYPE_LINEAR_ACCELERATION -> {
-                        Log.d(
-                            "KalmanFilter::",
-                            "Values From Library onSensorChanged Linear Acceleration"
-                        )
+                        constructSensorsData(Utils.LINEAR_ACCELERATION, event.values)
                         // Converting the Linear Acceleration values to an Array
                         System.arraycopy(event.values, 0, linAcceleration, 0, event.values.size)
                         /**Multiplying the inverted Rotation Matrix values with the linear acceleration sensor values
@@ -129,6 +160,8 @@ abstract class GPSActivity : AppCompatActivity() {
                             linAcceleration,
                             0
                         )
+
+                        constructSensorsData("Acceleration_Vector", accelerationVector)
 
                         // It will initialize once the Location details get triggered
                         if (gpsViewModel.gpsAccKalmanFilter.isInitializedFromDI()) {
@@ -158,10 +191,7 @@ abstract class GPSActivity : AppCompatActivity() {
                     }
 
                     Sensor.TYPE_ROTATION_VECTOR -> {
-                        Log.d(
-                            "KalmanFilter::",
-                            "Values From Library onSensorChanged Type Rotation vector"
-                        )
+                        constructSensorsData(Utils.ROTATION_VECTOR, event.values)
                         /** Getting Rotation Matrix values from Rotation Vector Component,
                         which is 16 size array in Matrix form 4 x 4 matrix
                          *  one dimensions for each axis x, y, and z, plus one dimension to represent the
@@ -418,16 +448,33 @@ abstract class GPSActivity : AppCompatActivity() {
             file.mkdir()
         }
         csvFile = File(file, "gps_data.csv")
+        sensorFile = File(file, "sensors_data.csv")
 
         if (!csvFile.exists()) {
             csvFile.createNewFile()
+        }
+
+        if (!sensorFile.exists())
+            sensorFile.createNewFile()
+
+    }
+
+    private fun writeSensorDataToFile(sensorsModel: SensorsModel) {
+        val data =
+            "${sensorsModel.sensorName},${sensorsModel.timestamp},${sensorsModel.x},${sensorsModel.y},${sensorsModel.z},${sensorsModel.distance}\n"
+        try {
+            val fof = FileOutputStream(sensorFile, true)
+            fof.write(data.toByteArray())
+            fof.close()
+        } catch (e: IOException) {
+            Log.d("Main::", "Writing to File Failed ${e.message}")
         }
 
     }
 
     private fun writeDataToFile(distanceModel: DistanceModel) {
         val data =
-            "Regular Speed : ${distanceModel.regSpeed}, Speed : ${distanceModel.magSpeed} \n"
+            "Magnetic Speed : ${distanceModel.regSpeed}, Calculated Speed : ${distanceModel.magSpeed} \n"
         try {
             val fof = FileOutputStream(csvFile, true)
             fof.write(data.toByteArray())
