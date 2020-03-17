@@ -398,6 +398,22 @@ abstract class GPSActivity : AppCompatActivity() {
             sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION),
             linearAccSensorSamplingPeriod
         )
+        /*17th March*/
+        sensorManager.registerListener(
+            sensorEventListener,
+            sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
+            linearAccSensorSamplingPeriod
+        )
+        sensorManager.registerListener(
+            sensorEventListener,
+            sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE),
+            linearAccSensorSamplingPeriod
+        )
+        sensorManager.registerListener(
+            sensorEventListener,
+            sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
+            linearAccSensorSamplingPeriod
+        )
     }
 
     /**Registering the Rotation Vector Sensor*/
@@ -430,6 +446,18 @@ abstract class GPSActivity : AppCompatActivity() {
         sensorManager.unregisterListener(
             sensorEventListener,
             sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
+        )
+        sensorManager.unregisterListener(
+            sensorEventListener,
+            sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        )
+        sensorManager.unregisterListener(
+            sensorEventListener,
+            sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
+        )
+        sensorManager.unregisterListener(
+            sensorEventListener,
+            sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
         )
     }
 
