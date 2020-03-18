@@ -106,20 +106,12 @@ class GPSViewModel(
     ) {
 
         // Location provider will change in GeoHashRTFilter class
-        /*if (location.latitude == 0.0 ||
+        if (location.latitude == 0.0 ||
             location.longitude == 0.0 ||
             location.provider != Utils.LOCATION_FROM_FILTER
         ) {
             return
-        }*/
-/*
-        geoValues.postValue(
-            "Distance Geo : ${geohashRTFilter.getDistanceGeoFiltered()} \n" +
-                    "Distance Geo HP : ${geohashRTFilter.getDistanceGeoFilteredHP()} \n" +
-                    "DistanceAsIs : ${geohashRTFilter.getDistanceAsIs()} \n" +
-                    "DistanceAsIs HP : ${geohashRTFilter.getDistanceAsIsHP()}"
-        )
-*/
+        }
 
         val sensorsModel = SensorsModel(
             "Distance",
@@ -130,12 +122,6 @@ class GPSViewModel(
             geohashRTFilter.getDistanceAsIs()
         )
         geoValues.postValue(sensorsModel)
-
-
-        val speedAsIs = geohashRTFilter.getDistanceAsIsNew() / (currentTimeStamp - lastTimeStamp)
-        val speedAsIsHp =
-            geohashRTFilter.getDistanceAsIsHPNew() / (currentTimeStamp - lastTimeStamp)
-
 
     }
 
