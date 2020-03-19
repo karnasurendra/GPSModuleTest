@@ -29,6 +29,11 @@ import kotlin.math.sin
 
 abstract class GPSActivity : AppCompatActivity() {
 
+    private var accCount = 0
+    private var gyroCount = 0
+    private var magCount = 0
+    private var laCount = 0
+    private var rvCount = 0
     private val permissions = arrayOf(
         Manifest.permission.ACCESS_FINE_LOCATION,
         Manifest.permission.ACCESS_COARSE_LOCATION,
@@ -134,18 +139,26 @@ abstract class GPSActivity : AppCompatActivity() {
                 when (event.sensor.type) {
 
                     Sensor.TYPE_ACCELEROMETER -> {
+                        accCount++
+                        Log.d("GPS", "Sensors Count ACC $accCount")
                         constructSensorsData(Utils.ACCELEROMETER, event.values)
                     }
 
                     Sensor.TYPE_GYROSCOPE -> {
+                        gyroCount++
+                        Log.d("GPS", "Sensors Count Gyro $gyroCount")
                         constructSensorsData(Utils.GYROSCOPE, event.values)
                     }
 
                     Sensor.TYPE_MAGNETIC_FIELD -> {
+                        magCount++
+                        Log.d("GPS", "Sensors Count Mag $magCount")
                         constructSensorsData(Utils.MAGNETOMETER, event.values)
                     }
 
                     Sensor.TYPE_LINEAR_ACCELERATION -> {
+                        laCount++
+                        Log.d("GPS", "Sensors Count LA $laCount")
                         constructSensorsData(Utils.LINEAR_ACCELERATION, event.values)
                         // Converting the Linear Acceleration values to an Array
                         System.arraycopy(event.values, 0, linAcceleration, 0, event.values.size)
@@ -191,6 +204,8 @@ abstract class GPSActivity : AppCompatActivity() {
                     }
 
                     Sensor.TYPE_ROTATION_VECTOR -> {
+                        rvCount++
+                        Log.d("GPS", "Sensors Count Rotation Vector $rvCount")
                         constructSensorsData(Utils.ROTATION_VECTOR, event.values)
                         /** Getting Rotation Matrix values from Rotation Vector Component,
                         which is 16 size array in Matrix form 4 x 4 matrix
