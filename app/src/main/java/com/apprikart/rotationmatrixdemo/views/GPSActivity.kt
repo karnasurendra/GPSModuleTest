@@ -298,7 +298,7 @@ abstract class GPSActivity : AppCompatActivity() {
             "Checking Location issue in onLocationUpdate:: required GPS Accuracy $gpsAccuracy Location Accuracy ${location.accuracy}"
         )
 
-        Toast.makeText(this, "Location Accuracy ${location.accuracy}", Toast.LENGTH_SHORT).show()
+//        Toast.makeText(this, "Location Accuracy ${location.accuracy}", Toast.LENGTH_SHORT).show()
 
         if (location.accuracy > gpsAccuracy) return
 
