@@ -293,6 +293,11 @@ abstract class GPSActivity : AppCompatActivity() {
 
     private fun onLocationUpdate(location: Location) {
 
+        Log.d(
+            "GPSACtivity::",
+            "Checking Location issue in onLocationUpdate:: required GPS Accuracy $gpsAccuracy Location Accuracy ${location.accuracy}"
+        )
+
         if (location.accuracy > gpsAccuracy) return
 
         if (!isTrackingStarted) {
